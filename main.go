@@ -721,8 +721,17 @@ func worker (machines chan Machine, semiFinProduct chan SemiFinishedProduct){
 		//}
 		//
 	}
-
 }
+
+type dispatcher struct{
+	order chan Order
+	pipelineMachine chan Machine	//using for grindBeanMachine and espressoCoffeeMachine in one pipeline
+}
+
+//1. 接收到订单 <- order，
+//1.1 启动grindBeanMachine.running，结束后开始espressoCoffeeMachine.running，控制在pipelineMachine中
+//1.2 启动steamMilkMachine.running
+//2. 同时接收到 <- chanEspressoCoffee和 <- chanSteamMilk，可以makeLatte(coffee, milk)
 
 
 //////////////////////////////////////////////////////////////////////////////////
