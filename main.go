@@ -675,40 +675,40 @@ type Machine interface {
 	running() SemiFinishedProduct
 }
 
-type SemiFinishedProduct struct{
-	productId int64
+type SemiFinishedProduct struct {
+	productId          int64
 	productDescription string
 }
+
 var grindBeanTime, espressoCoffeeTime, steamMilkTime time.Duration = 1, 2, 3
 
-type grindBeanMachine struct{
+type grindBeanMachine struct {
 	order chan Order
-
 }
-func (g * grindBeanMachine) running() SemiFinishedProduct {
+
+func (g *grindBeanMachine) running() SemiFinishedProduct {
 
 	time.Sleep(time.Millisecond * grindBeanTime)
 	return SemiFinishedProduct{}
 }
 
-type espressoCoffeeMachine struct{
-
+type espressoCoffeeMachine struct {
 }
-func (e * espressoCoffeeMachine) running() SemiFinishedProduct {
+
+func (e *espressoCoffeeMachine) running() SemiFinishedProduct {
 	time.Sleep(time.Millisecond * espressoCoffeeTime)
 	return SemiFinishedProduct{}
 }
 
-type steamMilkMachine struct{
-
+type steamMilkMachine struct {
 }
-func (e * steamMilkMachine) running() SemiFinishedProduct {
+
+func (e *steamMilkMachine) running() SemiFinishedProduct {
 	time.Sleep(time.Millisecond * steamMilkTime)
 	return SemiFinishedProduct{}
 }
 
-
-func worker (machines chan Machine, semiFinProduct chan SemiFinishedProduct){
+func worker(machines chan Machine, semiFinProduct chan SemiFinishedProduct) {
 	for machine := range machines {
 
 		semiFinProduct <- machine.running()
@@ -723,16 +723,16 @@ func worker (machines chan Machine, semiFinProduct chan SemiFinishedProduct){
 	}
 }
 
-type dispatcher struct{
-	order chan Order
-	pipelineMachine chan Machine	//using for grindBeanMachine and espressoCoffeeMachine in one pipeline
+type dispatcher struct {
+	order           chan Order
+	pipelineMachine chan Machine //using for grindBeanMachine and espressoCoffeeMachine in one pipeline
 }
 
 //1. 接收到订单 <- order，
 //1.1 启动grindBeanMachine.running，结束后开始espressoCoffeeMachine.running，控制在pipelineMachine中
 //1.2 启动steamMilkMachine.running
 //2. 同时接收到 <- chanEspressoCoffee和 <- chanSteamMilk，可以makeLatte(coffee, milk)
-
+//coffee latte
 
 //////////////////////////////////////////////////////////////////////////////////
 
