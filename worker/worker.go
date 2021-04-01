@@ -2,6 +2,7 @@ package worker
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"time"
 )
@@ -48,9 +49,9 @@ func (e *steamMilkJob) dojob(worker_id int, job Job) SemiFinishedProduct {
 // Job represents a single entity that should be processed.
 // For example a struct that should be saved to database
 type Job struct {
-	ID   int
-	Name string
-	//dojob	interface{}
+	ID        int
+	Name      string
+	Dojob     func(id int, job Job)
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -87,7 +88,8 @@ func (wr *Worker) Start() {
 			case job := <-wr.JobChan:
 				// when a job is received, process
 				//callApi(job.ID, wr.ID, c)
-				dojob(wr.ID, job)
+				job.Dojob(wr.ID, job)
+				//dojob(wr.ID, job)
 			case <-wr.Quit:
 				// a signal on this channel means someone triggered
 				// a shutdown for this worker
@@ -104,11 +106,13 @@ func (wr *Worker) Stop() {
 }
 
 func dojob(id int, job Job) {
+	start := time.Now()
 	prefix := fmt.Sprintf("Worker[%d]-Job[%d::%s]", id, job.ID, job.Name)
 	fmt.Println(prefix, "start to do job!")
 	//time.Sleep(time.Millisecond * time.Duration(rand.Intn(100000)))
 	time.Sleep(time.Second * time.Duration(rand.Intn(20)))
-
+	end := time.Now()
+	log.Print(end.Sub(start).Seconds())
 }
 
 //

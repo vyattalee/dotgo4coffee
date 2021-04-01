@@ -5,12 +5,13 @@ import (
 	"coffeeshop/worker"
 	"fmt"
 	"log"
+	"math/rand"
 	"time"
 )
 
 func main() {
 	start := time.Now()
-	dd := dispatcher.New(16).Start()
+	dd := dispatcher.New(10).Start()
 
 	terms := map[int]string{
 		1:  "grindBean",
@@ -35,8 +36,16 @@ func main() {
 
 	for id, name := range terms {
 		dd.Submit(worker.Job{
-			ID:        id,
-			Name:      fmt.Sprintf("Job-::%s", name),
+			ID:   id,
+			Name: fmt.Sprintf("Job-::%s", name),
+			Dojob: func(id int, job worker.Job) {
+				start := time.Now()
+				prefix := fmt.Sprintf("##Worker[%d]-Job[%d::%s]", id, job.ID, job.Name)
+				log.Print(prefix, "start to do job!")
+				time.Sleep(time.Second * time.Duration(rand.Intn(10)))
+				end := time.Now()
+				log.Print(prefix, "finish job total time: ", end.Sub(start).Seconds())
+			},
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 		})
