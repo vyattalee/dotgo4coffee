@@ -1,4 +1,4 @@
-module dotgo/coffee
+module coffeeshop
 
 go 1.16
 
