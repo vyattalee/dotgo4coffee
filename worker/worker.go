@@ -7,45 +7,6 @@ import (
 	"time"
 )
 
-type Jobable interface {
-	dojob(worker_id int, job Job)
-}
-
-type SemiFinishedProduct struct {
-	productId          int64
-	productDescription string
-}
-
-var grindBeanTime, espressoCoffeeTime, steamMilkTime time.Duration = 1, 2, 3
-
-type grindBeanJob struct {
-	Job
-}
-
-func (g *grindBeanJob) dojob(worker_id int, job Job) SemiFinishedProduct {
-
-	time.Sleep(time.Millisecond * grindBeanTime)
-	return SemiFinishedProduct{}
-}
-
-type espressoCoffeeJob struct {
-	Job
-}
-
-func (e *espressoCoffeeJob) dojob(worker_id int, job Job) SemiFinishedProduct {
-	time.Sleep(time.Millisecond * espressoCoffeeTime)
-	return SemiFinishedProduct{}
-}
-
-type steamMilkJob struct {
-	Job
-}
-
-func (e *steamMilkJob) dojob(worker_id int, job Job) SemiFinishedProduct {
-	time.Sleep(time.Millisecond * steamMilkTime)
-	return SemiFinishedProduct{}
-}
-
 // Job represents a single entity that should be processed.
 // For example a struct that should be saved to database
 type Job struct {

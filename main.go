@@ -2,7 +2,9 @@ package main
 
 import (
 	"coffeeshop/dispatcher"
+	"coffeeshop/dispatcher1"
 	"coffeeshop/worker"
+	"coffeeshop/worker1"
 	"fmt"
 	"log"
 	"math/rand"
@@ -10,6 +12,12 @@ import (
 )
 
 func main() {
+	//dispatch_worker()
+
+	dispatch_worker1()
+}
+
+func dispatch_worker() {
 	start := time.Now()
 	dd := dispatcher.New(10).Start()
 
@@ -53,10 +61,51 @@ func main() {
 
 	//dd.Submit(worker.grindBeanJob{
 	//	ID:        id,
-	//	Name:      fmt.Sprintf("Job-::%s", name),
+	//	name:      fmt.Sprintf("Job-::%s", name),
 	//	CreatedAt: time.Now(),
 	//	UpdatedAt: time.Now(),
 	//})
+
+	end := time.Now()
+	log.Print(end.Sub(start).Seconds())
+}
+
+func dispatch_worker1() {
+	start := time.Now()
+
+	dd := dispatcher1.New(16).Start()
+
+	//grindBean_espressoCoffee_machine := (worker1.grindBeanMachine)
+
+	terms := map[int]string{
+		2: "grindBean_espressoCoffee_pipeline",
+		//2:  "grindBean_espressoCoffee_pipeline",
+		//3:  "steamMilk_pipeline",
+		//4:  "grindBean_espressoCoffee_pipeline",
+		//5:  "grindBean_espressoCoffee_pipeline",
+		//6:  "steamMilk_pipeline",
+		//7:  "grindBean_espressoCoffee_pipeline",
+		//8:  "grindBean_espressoCoffee_pipeline",
+		//9:  "steamMilk_pipeline",
+		//10: "grindBean_espressoCoffee_pipeline",
+		//11: "grindBean_espressoCoffee_pipeline",
+		//12: "steamMilk_pipeline",
+		//13: "grindBean_espressoCoffee_pipeline",
+		//14: "grindBean_espressoCoffee_pipeline",
+		//15: "steamMilk_pipeline",
+		//16: "steamMilk_pipeline",
+		//17: "grindBean_espressoCoffee_pipeline",
+		//18: "grindBean_espressoCoffee_pipeline",
+		1: "steamMilk_pipeline"}
+
+	for id, name := range terms {
+
+		pipeline := worker1.NewPipeline(id, name)
+		pipeline.Machines <- &worker1.GrindBeanMachine{}
+		pipeline.Machines <- &worker1.EspressoCoffeeMachine{}
+
+		dd.SubmitPipeline(*pipeline)
+	}
 
 	end := time.Now()
 	log.Print(end.Sub(start).Seconds())
