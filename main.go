@@ -77,35 +77,48 @@ func dispatch_worker1() {
 
 	//grindBean_espressoCoffee_machine := (worker1.grindBeanMachine)
 
-	terms := map[int]string{
-		2: "grindBean_espressoCoffee_pipeline",
-		//2:  "grindBean_espressoCoffee_pipeline",
-		//3:  "steamMilk_pipeline",
-		//4:  "grindBean_espressoCoffee_pipeline",
-		//5:  "grindBean_espressoCoffee_pipeline",
-		//6:  "steamMilk_pipeline",
-		//7:  "grindBean_espressoCoffee_pipeline",
-		//8:  "grindBean_espressoCoffee_pipeline",
-		//9:  "steamMilk_pipeline",
-		//10: "grindBean_espressoCoffee_pipeline",
-		//11: "grindBean_espressoCoffee_pipeline",
-		//12: "steamMilk_pipeline",
-		//13: "grindBean_espressoCoffee_pipeline",
-		//14: "grindBean_espressoCoffee_pipeline",
-		//15: "steamMilk_pipeline",
-		//16: "steamMilk_pipeline",
-		//17: "grindBean_espressoCoffee_pipeline",
-		//18: "grindBean_espressoCoffee_pipeline",
-		1: "steamMilk_pipeline"}
+	//terms := map[int]string{
+	//	1: "steamMilk_pipeline",
+	//	2: "grindBean_espressoCoffee_pipeline",
+	//2:  "grindBean_espressoCoffee_pipeline",
+	//3:  "steamMilk_pipeline",
+	//4:  "grindBean_espressoCoffee_pipeline",
+	//5:  "grindBean_espressoCoffee_pipeline",
+	//6:  "steamMilk_pipeline",
+	//7:  "grindBean_espressoCoffee_pipeline",
+	//8:  "grindBean_espressoCoffee_pipeline",
+	//9:  "steamMilk_pipeline",
+	//10: "grindBean_espressoCoffee_pipeline",
+	//11: "grindBean_espressoCoffee_pipeline",
+	//12: "steamMilk_pipeline",
+	//13: "grindBean_espressoCoffee_pipeline",
+	//14: "grindBean_espressoCoffee_pipeline",
+	//15: "steamMilk_pipeline",
+	//16: "steamMilk_pipeline",
+	//17: "grindBean_espressoCoffee_pipeline",
+	//18: "grindBean_espressoCoffee_pipeline",
+	//}
 
-	for id, name := range terms {
+	//for id, name := range terms {
+	//
+	//	pipeline := worker1.NewPipeline(id, name)
+	//	//pipeline.Machines[0] = worker1.Machine(&worker1.GrindBeanMachine{})
+	//	//pipeline.Machines[1] = &worker1.EspressoCoffeeMachine{}
+	//	pipeline.Machines <- &worker1.GrindBeanMachine{}
+	//	pipeline.Machines <- &worker1.EspressoCoffeeMachine{}
+	//
+	//	dd.SubmitPipeline(*pipeline)
+	//}
 
-		pipeline := worker1.NewPipeline(id, name)
-		pipeline.Machines <- &worker1.GrindBeanMachine{}
-		pipeline.Machines <- &worker1.EspressoCoffeeMachine{}
+	pipeline1 := worker1.NewPipeline(1, "grindBean_espressoCoffee_pipeline")
+	pipeline1.Machines <- &worker1.GrindBeanMachine{}
+	pipeline1.Machines <- &worker1.EspressoCoffeeMachine{}
 
-		dd.SubmitPipeline(*pipeline)
-	}
+	pipeline2 := worker1.NewPipeline(2, "steamMilk_pipeline")
+	pipeline2.Machines <- &worker1.SteamMilkMachine{}
+
+	dd.SubmitPipeline(*pipeline1)
+	dd.SubmitPipeline(*pipeline2)
 
 	end := time.Now()
 	log.Print(end.Sub(start).Seconds())

@@ -7,7 +7,7 @@ import (
 )
 
 type Machine interface {
-	dojob(worker_id int, job Job) SemiFinishedProduct
+	dojob(workerId int, job Job) SemiFinishedProduct
 	name() string
 }
 
@@ -21,9 +21,9 @@ var grindBeanTime, espressoCoffeeTime, steamMilkTime time.Duration = 1, 2, 3
 type GrindBeanMachine struct {
 }
 
-func (g *GrindBeanMachine) dojob(worker_id int, job Job) SemiFinishedProduct {
+func (g *GrindBeanMachine) dojob(workerId int, job Job) SemiFinishedProduct {
 	start := time.Now()
-	prefix := fmt.Sprintf("Worker[%d]-Job[%d::%s]", worker_id, job.ID, job.Name)
+	prefix := fmt.Sprintf("Worker[%d]-Job[%d::%s]", workerId, job.ID, job.Name)
 	fmt.Println(prefix, "start to do job!")
 	time.Sleep(time.Millisecond * grindBeanTime)
 	end := time.Now()
@@ -38,9 +38,9 @@ func (g *GrindBeanMachine) name() string {
 type EspressoCoffeeMachine struct {
 }
 
-func (e *EspressoCoffeeMachine) dojob(worker_id int, job Job) SemiFinishedProduct {
+func (e *EspressoCoffeeMachine) dojob(workerId int, job Job) SemiFinishedProduct {
 	start := time.Now()
-	prefix := fmt.Sprintf("Worker[%d]-Job[%d::%s]", worker_id, job.ID, job.Name)
+	prefix := fmt.Sprintf("Worker[%d]-Job[%d::%s]", workerId, job.ID, job.Name)
 	fmt.Println(prefix, "start to do job!")
 	time.Sleep(time.Millisecond * espressoCoffeeTime)
 	end := time.Now()
@@ -55,9 +55,9 @@ func (e *EspressoCoffeeMachine) name() string {
 type SteamMilkMachine struct {
 }
 
-func (s *SteamMilkMachine) dojob(worker_id int, job Job) SemiFinishedProduct {
+func (s *SteamMilkMachine) dojob(workerId int, job Job) SemiFinishedProduct {
 	start := time.Now()
-	prefix := fmt.Sprintf("Worker[%d]-Job[%d::%s]", worker_id, job.ID, job.Name)
+	prefix := fmt.Sprintf("Worker[%d]-Job[%d::%s]", workerId, job.ID, job.Name)
 	fmt.Println(prefix, "start to do job!")
 	time.Sleep(time.Millisecond * steamMilkTime)
 	end := time.Now()
