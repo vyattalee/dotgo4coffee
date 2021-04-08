@@ -73,7 +73,7 @@ func dispatch_worker() {
 func dispatch_worker1() {
 	start := time.Now()
 
-	dd := dispatcher1.New(16).Start()
+	dd := dispatcher1.New(6).Start()
 
 	//grindBean_espressoCoffee_machine := (worker1.grindBeanMachine)
 
@@ -119,6 +119,26 @@ func dispatch_worker1() {
 
 	dd.SubmitPipeline(*pipeline1)
 	dd.SubmitPipeline(*pipeline2)
+
+	pipeline3 := worker1.NewPipeline(3, "3_pipeline")
+	pipeline3.Machines <- &worker1.SteamMilkMachine{}
+	pipeline4 := worker1.NewPipeline(4, "4_pipeline")
+	pipeline4.Machines <- &worker1.SteamMilkMachine{}
+	pipeline5 := worker1.NewPipeline(5, "5_pipeline")
+	pipeline5.Machines <- &worker1.SteamMilkMachine{}
+	pipeline6 := worker1.NewPipeline(6, "6_pipeline")
+	pipeline6.Machines <- &worker1.SteamMilkMachine{}
+	pipeline7 := worker1.NewPipeline(7, "7_pipeline")
+	pipeline7.Machines <- &worker1.SteamMilkMachine{}
+	pipeline8 := worker1.NewPipeline(8, "8_pipeline")
+	pipeline8.Machines <- &worker1.SteamMilkMachine{}
+
+	dd.SubmitPipeline(*pipeline3)
+	dd.SubmitPipeline(*pipeline4)
+	dd.SubmitPipeline(*pipeline5)
+	dd.SubmitPipeline(*pipeline6)
+	dd.SubmitPipeline(*pipeline7)
+	//dd.SubmitPipeline(*pipeline8)
 
 	end := time.Now()
 	log.Print(end.Sub(start).Seconds())

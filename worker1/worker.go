@@ -58,6 +58,7 @@ func (wr *Worker) Start() {
 					//} //end for
 				} //end for machine := range pipeline.Machines
 				//dojob(wr.ID, job)
+				//wr.Stop()
 			case <-wr.Quit:
 				// a signal on this channel means someone triggered
 				// a shutdown for this worker
