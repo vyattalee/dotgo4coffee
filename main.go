@@ -11,10 +11,58 @@ import (
 	"time"
 )
 
+type Mammal interface {
+	Say()
+}
+
+type Dog struct{}
+
+type Cat struct{}
+
+type Human struct{}
+
+func (d Dog) Say() {
+	fmt.Println("woof")
+}
+
+func (c Cat) Say() {
+	fmt.Println("meow")
+}
+
+func (h Human) Say() {
+	fmt.Println("speak")
+}
+
+func test4PolymorphicInheritanceBYInterface() {
+	var m Mammal
+	var mammalchan chan Mammal
+
+	m = &Dog{}
+	m.Say()
+	m = &Cat{}
+	m.Say()
+	m = &Human{}
+	m.Say()
+
+	mammalchan = make(chan Mammal, 5)
+	mammalchan <- Human{}
+	mammalchan <- Dog{}
+	mammalchan <- Cat{}
+	close(mammalchan) //remember channel should be closed after useing up
+
+	for m := range mammalchan {
+		//log.Println(m.Say())
+		m.Say()
+	}
+}
+
 func main() {
 	//dispatch_worker()
 
 	dispatch_worker1()
+
+	//test4PolymorphicInheritanceBYInterface()
+
 }
 
 func dispatch_worker() {
@@ -73,6 +121,8 @@ func dispatch_worker() {
 func dispatch_worker1() {
 	start := time.Now()
 
+	//var wg sync.WaitGroup
+
 	dd := dispatcher1.New(6).Start()
 
 	//grindBean_espressoCoffee_machine := (worker1.grindBeanMachine)
@@ -113,33 +163,46 @@ func dispatch_worker1() {
 	pipeline1 := worker1.NewPipeline(1, "grindBean_espressoCoffee_pipeline")
 	pipeline1.Machines <- &worker1.GrindBeanMachine{}
 	pipeline1.Machines <- &worker1.EspressoCoffeeMachine{}
+	close(pipeline1.Machines) //非常重要，不用了的channel务必关闭掉，否则就会有deadlock，继续等待channel接收数据
 
 	pipeline2 := worker1.NewPipeline(2, "steamMilk_pipeline")
 	pipeline2.Machines <- &worker1.SteamMilkMachine{}
+	close(pipeline2.Machines) //非常重要，不用了的channel务必关闭掉，否则就会有deadlock，继续等待channel接收数据
 
 	dd.SubmitPipeline(*pipeline1)
 	dd.SubmitPipeline(*pipeline2)
 
-	pipeline3 := worker1.NewPipeline(3, "3_pipeline")
-	pipeline3.Machines <- &worker1.SteamMilkMachine{}
-	pipeline4 := worker1.NewPipeline(4, "4_pipeline")
-	pipeline4.Machines <- &worker1.SteamMilkMachine{}
-	pipeline5 := worker1.NewPipeline(5, "5_pipeline")
-	pipeline5.Machines <- &worker1.SteamMilkMachine{}
-	pipeline6 := worker1.NewPipeline(6, "6_pipeline")
-	pipeline6.Machines <- &worker1.SteamMilkMachine{}
-	pipeline7 := worker1.NewPipeline(7, "7_pipeline")
-	pipeline7.Machines <- &worker1.SteamMilkMachine{}
-	pipeline8 := worker1.NewPipeline(8, "8_pipeline")
-	pipeline8.Machines <- &worker1.SteamMilkMachine{}
+	//pipeline3 := worker1.NewPipeline(3, "3_pipeline")
+	//pipeline3.Machines <- &worker1.SteamMilkMachine{}
+	//pipeline4 := worker1.NewPipeline(4, "4_pipeline")
+	//pipeline4.Machines <- &worker1.SteamMilkMachine{}
+	//pipeline5 := worker1.NewPipeline(5, "5_pipeline")
+	//pipeline5.Machines <- &worker1.SteamMilkMachine{}
+	//pipeline6 := worker1.NewPipeline(6, "6_pipeline")
+	//pipeline6.Machines <- &worker1.SteamMilkMachine{}
+	//pipeline7 := worker1.NewPipeline(7, "7_pipeline")
+	//pipeline7.Machines <- &worker1.SteamMilkMachine{}
+	//pipeline8 := worker1.NewPipeline(8, "8_pipeline")
+	//pipeline8.Machines <- &worker1.SteamMilkMachine{}
 
-	dd.SubmitPipeline(*pipeline3)
-	dd.SubmitPipeline(*pipeline4)
-	dd.SubmitPipeline(*pipeline5)
-	dd.SubmitPipeline(*pipeline6)
-	dd.SubmitPipeline(*pipeline7)
+	//dd.SubmitPipeline(*pipeline3)
+	//dd.SubmitPipeline(*pipeline4)
+	//dd.SubmitPipeline(*pipeline5)
+	//dd.SubmitPipeline(*pipeline6)
+	//dd.SubmitPipeline(*pipeline7)
 	//dd.SubmitPipeline(*pipeline8)
 
 	end := time.Now()
 	log.Print(end.Sub(start).Seconds())
+
+	select {
+	case <-pipeline1.PipelineDone:
+		log.Println("pipeline1-", pipeline1.Name, " done")
+	}
+	select {
+	case <-pipeline2.PipelineDone:
+		log.Println("pipeline2-", pipeline2.Name, " done")
+	}
+	//wg.Wait()
+	//fmt.Scanln()
 }

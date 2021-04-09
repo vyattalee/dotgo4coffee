@@ -35,7 +35,9 @@ func New(ID int, PipelineChan PipelineChannel, Queue PipelineQueue, Quit chan st
 func (wr *Worker) Start() {
 	//c := &http.Client{Timeout: time.Millisecond * 15000}
 	go func() {
+		//defer wg.Done()
 		for {
+
 			// when available, put the JobChan again on the JobPool
 			// and wait to receive a job
 			wr.Queue <- wr.PipelineChan
@@ -45,13 +47,16 @@ func (wr *Worker) Start() {
 				//callApi(job.ID, wr.ID, c)
 				//callPipeline(pipeline)
 				for machine := range pipeline.Machines {
+
 					//l := len(pipeline.Machines)
 					//for i := 1; i <= l; i++ {
 					//for {
 					//	select {
 					//	case machine := <-pipeline.Machines:
-					log.Println("pipeline-", pipeline.Name, " Machine-", machine.name(), " do job!")
-					machine.dojob(wr.ID, Job{pipeline.ID<<6 + wr.ID, pipeline.Name + machine.name(), time.Now(), time.Now()})
+					//log.Println("pipeline-", pipeline.Name, " Machine-", machine.name(), " do job!")
+					semiFinishedProduct := machine.dojob(*wr, Job{pipeline.ID<<6 + wr.ID, pipeline.Name + machine.name(), time.Now(), time.Now()})
+					log.Println("semiFinishedProduct[", semiFinishedProduct.productId, "::", semiFinishedProduct.productDescription, "]")
+
 					//default:
 					//	continue
 					//}
@@ -59,6 +64,10 @@ func (wr *Worker) Start() {
 				} //end for machine := range pipeline.Machines
 				//dojob(wr.ID, job)
 				//wr.Stop()
+				pipeline.PipelineDone <- struct{}{}
+				close(pipeline.PipelineDone)
+				wr.Quit <- struct{}{}
+
 			case <-wr.Quit:
 				// a signal on this channel means someone triggered
 				// a shutdown for this worker
@@ -66,6 +75,7 @@ func (wr *Worker) Start() {
 				return
 			}
 		}
+
 	}()
 }
 

@@ -7,7 +7,7 @@ import (
 )
 
 type Machine interface {
-	dojob(workerId int, job Job) SemiFinishedProduct
+	dojob(worker Worker, job Job) SemiFinishedProduct
 	name() string
 }
 
@@ -21,14 +21,14 @@ var grindBeanTime, espressoCoffeeTime, steamMilkTime time.Duration = 1, 2, 3
 type GrindBeanMachine struct {
 }
 
-func (g *GrindBeanMachine) dojob(workerId int, job Job) SemiFinishedProduct {
+func (g *GrindBeanMachine) dojob(worker Worker, job Job) SemiFinishedProduct {
 	start := time.Now()
-	prefix := fmt.Sprintf("Worker[%d]-Job[%d::%s]", workerId, job.ID, job.Name)
+	prefix := fmt.Sprintf("Worker[%d]-Job[%d::%s]", worker.ID, job.ID, job.Name)
 	fmt.Println(prefix, "start to do job!")
 	time.Sleep(time.Millisecond * grindBeanTime)
 	end := time.Now()
 	log.Print(end.Sub(start).Seconds())
-	return SemiFinishedProduct{}
+	return SemiFinishedProduct{int64(job.ID), "grindBeanSemiFinishedProduct"}
 }
 
 func (g *GrindBeanMachine) name() string {
@@ -38,14 +38,14 @@ func (g *GrindBeanMachine) name() string {
 type EspressoCoffeeMachine struct {
 }
 
-func (e *EspressoCoffeeMachine) dojob(workerId int, job Job) SemiFinishedProduct {
+func (e *EspressoCoffeeMachine) dojob(worker Worker, job Job) SemiFinishedProduct {
 	start := time.Now()
-	prefix := fmt.Sprintf("Worker[%d]-Job[%d::%s]", workerId, job.ID, job.Name)
+	prefix := fmt.Sprintf("Worker[%d]-Job[%d::%s]", worker.ID, job.ID, job.Name)
 	fmt.Println(prefix, "start to do job!")
 	time.Sleep(time.Millisecond * espressoCoffeeTime)
 	end := time.Now()
 	log.Print(end.Sub(start).Seconds())
-	return SemiFinishedProduct{}
+	return SemiFinishedProduct{int64(job.ID), "espressoCoffeeSemiFinishedProduct"}
 }
 
 func (e *EspressoCoffeeMachine) name() string {
@@ -55,14 +55,14 @@ func (e *EspressoCoffeeMachine) name() string {
 type SteamMilkMachine struct {
 }
 
-func (s *SteamMilkMachine) dojob(workerId int, job Job) SemiFinishedProduct {
+func (s *SteamMilkMachine) dojob(worker Worker, job Job) SemiFinishedProduct {
 	start := time.Now()
-	prefix := fmt.Sprintf("Worker[%d]-Job[%d::%s]", workerId, job.ID, job.Name)
+	prefix := fmt.Sprintf("Worker[%d]-Job[%d::%s]", worker.ID, job.ID, job.Name)
 	fmt.Println(prefix, "start to do job!")
 	time.Sleep(time.Millisecond * steamMilkTime)
 	end := time.Now()
 	log.Print(end.Sub(start).Seconds())
-	return SemiFinishedProduct{}
+	return SemiFinishedProduct{int64(job.ID), "steamMilkSemiFinishedProduct"}
 }
 
 func (s *SteamMilkMachine) name() string {

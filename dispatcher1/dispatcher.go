@@ -27,6 +27,7 @@ type disp struct {
 func (d *disp) Start() *disp {
 	l := len(d.Workers)
 	for i := 1; i <= l; i++ {
+		//wg.Add(1)	//根据pipeline个数设定
 		wrk := worker1.New(i, make(worker1.PipelineChannel), d.Queue, make(chan struct{}))
 		wrk.Start()
 		d.Workers = append(d.Workers, wrk)
