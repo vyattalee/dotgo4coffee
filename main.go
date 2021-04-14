@@ -3,6 +3,7 @@ package main
 import (
 	"coffeeshop/dispatcher"
 	"coffeeshop/dispatcher1"
+	"coffeeshop/dispatcher2"
 	"coffeeshop/worker"
 	"fmt"
 	"log"
@@ -59,6 +60,8 @@ func main() {
 	//dispatch_worker()
 
 	dispatch_worker1()
+
+	dispatch_worker2()
 
 	//test4PolymorphicInheritanceBYInterface()
 
@@ -184,6 +187,20 @@ func dispatch_worker1() {
 	//for i := 0; i < l; i++ {
 	//	<- dd.Workers[i].Quit
 	//}
+
+	end := time.Now()
+	log.Print(end.Sub(start).Seconds())
+	//wg.Wait()
+	//fmt.Scanln()
+}
+
+func dispatch_worker2() {
+	start := time.Now()
+
+	//var wg sync.WaitGroup
+
+	/*dd :=*/
+	dispatcher2.New(2, 6).Start()
 
 	end := time.Now()
 	log.Print(end.Sub(start).Seconds())
