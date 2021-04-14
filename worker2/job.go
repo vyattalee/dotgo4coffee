@@ -24,14 +24,14 @@ func (j Job) JobName() string {
 }
 
 type SemiFinishedProduct struct {
-	productId          int64
-	productDescription string
+	ProductId          int64
+	ProductDescription string
 }
 
 func (s SemiFinishedProduct) JobID() int64 {
-	return s.productId
+	return s.ProductId
 }
 
 func (s SemiFinishedProduct) JobName() string {
-	return s.productDescription
+	return s.ProductDescription
 }

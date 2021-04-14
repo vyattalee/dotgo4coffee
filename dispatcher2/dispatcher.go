@@ -2,56 +2,42 @@ package dispatcher2
 
 import (
 	"coffeeshop/worker2"
-	"log"
 )
 
 // New returns a new dispatcher. A Dispatcher communicates between the client
 // and the worker2. Its main job is to receive a job and share it on the WorkPool
 // WorkPool is the link between the dispatcher and all the workers as
 // the WorkPool of the dispatcher is common JobPool for all the workers
-func New(pipelinenum int, workernum int) *disp {
+func New(workernum int) *disp {
 	return &disp{
-		Pipelines:      make([]*worker2.Pipeline, pipelinenum),
-		PiplelineQueue: make(worker2.PipelineQueue),
-		Workers:        make([]*worker2.Worker, workernum),
-		JobChan:        make(worker2.JobChannel),
-		Queue:          make(worker2.JobQueue),
+		//Pipelines:      make([]*worker2.Pipeline, pipelinenum),
+		PipelineChan:  make(worker2.PipelineChannel),
+		PipelineQueue: make(worker2.PipelineQueue),
+		Workers:       make([]*worker2.Worker, workernum),
+		JobChan:       make(worker2.JobChannel),
+		Queue:         make(worker2.JobQueue),
 	}
 }
 
 // disp is the link between the client and the workers
 type disp struct {
-	Pipelines      []*worker2.Pipeline
-	PiplelineQueue worker2.PipelineQueue
-	Workers        []*worker2.Worker // this is the list of workers that dispatcher tracks
-	JobChan        worker2.JobChannel
-	Queue          worker2.JobQueue // this is the shared JobPool between the workers
+	//Pipelines      []*worker2.Pipeline
+	PipelineChan  chan worker2.Pipeline
+	PipelineQueue worker2.PipelineQueue
+	Workers       []*worker2.Worker // this is the list of workers that dispatcher tracks
+	JobChan       worker2.JobChannel
+	Queue         worker2.JobQueue // this is the shared JobPool between the workers
 }
 
 // Start creates pool of num count of workers.
 func (d *disp) Start() *disp {
 
-	pipeline1, pipeline2 := d.constructPipeline()
-
-	d.Pipelines = append(d.Pipelines, pipeline1)
-	d.Pipelines = append(d.Pipelines, pipeline2)
-
-	//var PipelineChan chan worker2.Pipeline
-	//P
-
-	select {
-	case <-pipeline1.PipelineDone:
-		log.Println("pipeline1-", pipeline1.Name, " done")
-	}
-	select {
-	case <-pipeline2.PipelineDone:
-		log.Println("pipeline2-", pipeline2.Name, " done")
-	}
+	//pipelines_implementation_backup(d)
 
 	l := len(d.Workers)
 	for i := 1; i <= l; i++ {
 
-		wrk := worker2.New(i, "default", nil, nil, make(worker2.JobChannel), d.Queue, make(chan struct{}))
+		wrk := worker2.New(i, "default", make(worker2.PipelineChannel), d.PipelineQueue, make(worker2.JobChannel), d.Queue, make(chan struct{}))
 		wrk.Start()
 		d.Workers = append(d.Workers, wrk)
 	}
@@ -60,12 +46,37 @@ func (d *disp) Start() *disp {
 	return d
 }
 
+func pipelines_implementation_backup(d *disp) {
+	//pipeline1, pipeline2 := d.constructPipeline()
+	//
+	////d.Pipelines = append(d.Pipelines, pipeline1)
+	////d.Pipelines = append(d.Pipelines, pipeline2)
+	//
+	////var PipelineChan chan worker2.Pipeline
+	////P
+	//
+	//select {
+	//case <-pipeline1.PipelineDone:
+	//	log.Println("pipeline1-", pipeline1.Name, " done")
+	//}
+	//select {
+	//case <-pipeline2.PipelineDone:
+	//	log.Println("pipeline2-", pipeline2.Name, " done")
+	//}
+}
+
 // process listens to a job submitted on WorkChan and
 // relays it to the WorkPool. The WorkPool is shared between
 // the workers.
 func (d *disp) process() {
 	for {
 		select {
+		case pipeline := <-d.PipelineChan:
+
+			PipelineChan := <-d.PipelineQueue
+
+			PipelineChan <- pipeline
+
 		case job := <-d.JobChan: // listen to any submitted job on the WorkChan
 			// wait for a worker2 to submit JobChan to JobQueue
 			// note that this JobQueue is shared among all workers.
@@ -90,10 +101,10 @@ func (d *disp) constructPipeline() (*worker2.Pipeline, *worker2.Pipeline) {
 	return pipeline1, pipeline2
 }
 
-//func (d *disp) SubmitJob(job worker2.Job) {
-//	d.JobChan <- job
-//}
+func (d *disp) SubmitJob(job worker2.JobInterface) {
+	d.JobChan <- job
+}
 
-//func (d *disp) submitPipeline(pipeline Pipeline) {
-//	d.JobChan <- pipeline
-//}
+func (d *disp) SubmitPipeline(pipeline worker2.Pipeline) {
+	d.PipelineChan <- pipeline
+}

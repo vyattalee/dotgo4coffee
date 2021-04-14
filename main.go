@@ -5,6 +5,7 @@ import (
 	"coffeeshop/dispatcher1"
 	"coffeeshop/dispatcher2"
 	"coffeeshop/worker"
+	"coffeeshop/worker2"
 	"fmt"
 	"log"
 	"math/rand"
@@ -59,7 +60,7 @@ func test4PolymorphicInheritanceBYInterface() {
 func main() {
 	//dispatch_worker()
 
-	dispatch_worker1()
+	//dispatch_worker1()
 
 	dispatch_worker2()
 
@@ -199,8 +200,32 @@ func dispatch_worker2() {
 
 	//var wg sync.WaitGroup
 
-	/*dd :=*/
-	dispatcher2.New(2, 6).Start()
+	/**/
+	dd := dispatcher2.New(6).Start()
+
+	pipeline1 := worker2.NewPipeline(1, "grindBean_espressoCoffee_pipeline")
+	pipeline1.Machines <- &worker2.GrindBeanMachine{}
+	pipeline1.Machines <- &worker2.EspressoCoffeeMachine{}
+	close(pipeline1.Machines) //非常重要，不用了的channel务必关闭掉，否则就会有deadlock，继续等待channel接收数据
+
+	pipeline2 := worker2.NewPipeline(2, "steamMilk_pipeline")
+	pipeline2.Machines <- &worker2.SteamMilkMachine{}
+	close(pipeline2.Machines) //非常重要，不用了的channel务必关闭掉，否则就会有deadlock，继续等待channel接收数据
+
+	dd.SubmitPipeline(*pipeline1)
+	dd.SubmitPipeline(*pipeline2)
+
+	dd.SubmitJob(worker2.Job{
+		ID:        1000,
+		Name:      fmt.Sprintf("Job-::%s", "normal order"),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	})
+
+	dd.SubmitJob(worker2.SemiFinishedProduct{
+		ProductId:          1001,
+		ProductDescription: fmt.Sprintf("Job-::%s", "semiFinishedProduct"),
+	})
 
 	end := time.Now()
 	log.Print(end.Sub(start).Seconds())

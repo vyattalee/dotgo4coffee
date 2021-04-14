@@ -5,6 +5,7 @@ package worker2
 
 import (
 	"log"
+	"time"
 )
 
 // Job represents a single entity that should be processed.
@@ -52,47 +53,77 @@ func (wr *Worker) Start() {
 
 			// when available, put the JobChan again on the JobPool
 			// and wait to receive a job
-			wr.JobQueue <- wr.JobChan
+			wr.PipelineQueue <- wr.PipelineChan
+
 			select {
-			case job := <-wr.JobChan:
-				// when a pipeline is received, process
-				log.Println("Worker[", wr.ID, "::", wr.Name, "] do job[", job.JobID(), "::", job.JobName(), "]")
-				//callApi(job.ID, wr.ID, c)
-				//callPipeline(pipeline)
-				//for machine := range pipeline.Machines {
+			case pipeline := <-wr.PipelineChan:
+				wr.JobQueue <- wr.JobChan
+				select {
+				case job := <-wr.JobChan:
+					log.Println("Worker[", wr.ID, "::", wr.Name, "] do job[", job.JobID(), "::", job.JobName(), "]")
+					for machine := range pipeline.Machines {
+						semiFinishedProduct := machine.dojob(*wr, Job{int64(pipeline.ID<<6 + wr.ID), pipeline.Name + machine.name(), time.Now(), time.Now()})
+						log.Println("semiFinishedProduct[", semiFinishedProduct.ProductId, "::", semiFinishedProduct.ProductDescription, "]")
 
-				//l := len(pipeline.Machines)
-				//for i := 1; i <= l; i++ {
-				//for {
-				//	select {
-				//	case machine := <-pipeline.Machines:
-				//log.Println("pipeline-", pipeline.Name, " Machine-", machine.name(), " do job!")
-				//for job := range wr.JobChan{
-				//	semiFinishedProduct := machine.dojob(*wr, job)
-				//	log.Println("semiFinishedProduct[", semiFinishedProduct.productId, "::", semiFinishedProduct.productDescription, "]")
-				//}
-				//semiFinishedProduct := machine.dojob(*wr, Job{int64(pipeline.ID<<6 + wr.ID), pipeline.Name + machine.name(), time.Now(), time.Now()})
-				//log.Println("semiFinishedProduct[", semiFinishedProduct.productId, "::", semiFinishedProduct.productDescription, "]")
+					}
+					pipeline.PipelineDone <- struct{}{}
+					close(pipeline.PipelineDone)
 
-				//default:
-				//	continue
-				//}
-				//} //end for
-				//} //end for machine := range pipeline.Machines
-				//dojob(wr.ID, job)
-				//wr.Stop()
-				//pipeline.PipelineDone <- struct{}{}
-				//close(pipeline.PipelineDone)
-				wr.Quit <- struct{}{}
-				wr.Stop()
+				case <-wr.Quit:
+					// a signal on this channel means someone triggered
+					// a shutdown for this worker
+					close(wr.JobChan)
+					return
+				}
 
-			case <-wr.Quit:
-				// a signal on this channel means someone triggered
-				// a shutdown for this worker
-				close(wr.JobChan)
-				return
+				wr.PipelineChan <- pipeline
+			case timeout := <-time.After(time.Second * 1):
+				log.Println("timeout", timeout)
+
 			}
-		}
+
+			//wr.JobQueue <- wr.JobChan
+			//select {
+			//case job := <-wr.JobChan:
+			//	// when a pipeline is received, process
+			//	log.Println("Worker[", wr.ID, "::", wr.Name, "] do job[", job.JobID(), "::", job.JobName(), "]")
+			//	//callApi(job.ID, wr.ID, c)
+			//	//callPipeline(pipeline)
+			//	//for machine := range pipeline.Machines {
+			//
+			//	//l := len(pipeline.Machines)
+			//	//for i := 1; i <= l; i++ {
+			//	//for {
+			//	//	select {
+			//	//	case machine := <-pipeline.Machines:
+			//	//log.Println("pipeline-", pipeline.Name, " Machine-", machine.name(), " do job!")
+			//	//for job := range wr.JobChan{
+			//	//	semiFinishedProduct := machine.dojob(*wr, job)
+			//	//	log.Println("semiFinishedProduct[", semiFinishedProduct.ProductId, "::", semiFinishedProduct.ProductDescription, "]")
+			//	//}
+			//	//semiFinishedProduct := machine.dojob(*wr, Job{int64(pipeline.ID<<6 + wr.ID), pipeline.Name + machine.name(), time.Now(), time.Now()})
+			//	//log.Println("semiFinishedProduct[", semiFinishedProduct.ProductId, "::", semiFinishedProduct.ProductDescription, "]")
+			//
+			//	//default:
+			//	//	continue
+			//	//}
+			//	//} //end for
+			//	//} //end for machine := range pipeline.Machines
+			//	//dojob(wr.ID, job)
+			//	//wr.Stop()
+			//	//pipeline.PipelineDone <- struct{}{}
+			//	//close(pipeline.PipelineDone)
+			//	wr.Quit <- struct{}{}
+			//	wr.Stop()
+			//
+			//case <-wr.Quit:
+			//	// a signal on this channel means someone triggered
+			//	// a shutdown for this worker
+			//	close(wr.JobChan)
+			//	return
+			//}
+
+		} //end of for
 
 	}()
 }
