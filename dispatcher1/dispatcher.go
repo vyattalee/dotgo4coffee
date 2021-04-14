@@ -2,6 +2,7 @@ package dispatcher1
 
 import (
 	"coffeeshop/worker1"
+	"log"
 )
 
 // New returns a new dispatcher. A Dispatcher communicates between the client
@@ -28,11 +29,26 @@ func (d *disp) Start() *disp {
 	l := len(d.Workers)
 	for i := 1; i <= l; i++ {
 		//wg.Add(1)	//根据pipeline个数设定
-		wrk := worker1.New(i, make(worker1.PipelineChannel), d.Queue, make(chan struct{}))
+		wrk := worker1.New(i, make(worker1.PipelineChannel), make(worker1.JobChannel), d.Queue, make(chan struct{}))
 		wrk.Start()
 		d.Workers = append(d.Workers, wrk)
 	}
 	go d.process()
+
+	pipeline1, pipeline2 := d.constructPipeline()
+
+	d.submitPipeline(*pipeline1)
+	d.submitPipeline(*pipeline2)
+
+	select {
+	case <-pipeline1.PipelineDone:
+		log.Println("pipeline1-", pipeline1.Name, " done")
+	}
+	select {
+	case <-pipeline2.PipelineDone:
+		log.Println("pipeline2-", pipeline2.Name, " done")
+	}
+
 	return d
 }
 
@@ -54,10 +70,22 @@ func (d *disp) process() {
 	}
 }
 
+func (d *disp) constructPipeline() (*worker1.Pipeline, *worker1.Pipeline) {
+	pipeline1 := worker1.NewPipeline(1, "grindBean_espressoCoffee_pipeline")
+	pipeline1.Machines <- &worker1.GrindBeanMachine{}
+	pipeline1.Machines <- &worker1.EspressoCoffeeMachine{}
+	close(pipeline1.Machines) //非常重要，不用了的channel务必关闭掉，否则就会有deadlock，继续等待channel接收数据
+
+	pipeline2 := worker1.NewPipeline(2, "steamMilk_pipeline")
+	pipeline2.Machines <- &worker1.SteamMilkMachine{}
+	close(pipeline2.Machines) //非常重要，不用了的channel务必关闭掉，否则就会有deadlock，继续等待channel接收数据
+	return pipeline1, pipeline2
+}
+
 //func (d *disp) SubmitJob(job worker1.Job) {
-//	d.WorkChan <- job
+//	d.JobChan <- job
 //}
 
-func (d *disp) SubmitPipeline(pipeline worker1.Pipeline) {
+func (d *disp) submitPipeline(pipeline worker1.Pipeline) {
 	d.PipelineChan <- pipeline
 }

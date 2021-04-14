@@ -4,7 +4,6 @@ import (
 	"coffeeshop/dispatcher"
 	"coffeeshop/dispatcher1"
 	"coffeeshop/worker"
-	"coffeeshop/worker1"
 	"fmt"
 	"log"
 	"math/rand"
@@ -123,7 +122,8 @@ func dispatch_worker1() {
 
 	//var wg sync.WaitGroup
 
-	dd := dispatcher1.New(6).Start()
+	/*dd :=*/
+	dispatcher1.New(6).Start()
 
 	//grindBean_espressoCoffee_machine := (worker1.grindBeanMachine)
 
@@ -157,20 +157,8 @@ func dispatch_worker1() {
 	//	pipeline.Machines <- &worker1.GrindBeanMachine{}
 	//	pipeline.Machines <- &worker1.EspressoCoffeeMachine{}
 	//
-	//	dd.SubmitPipeline(*pipeline)
+	//	dd.submitPipeline(*pipeline)
 	//}
-
-	pipeline1 := worker1.NewPipeline(1, "grindBean_espressoCoffee_pipeline")
-	pipeline1.Machines <- &worker1.GrindBeanMachine{}
-	pipeline1.Machines <- &worker1.EspressoCoffeeMachine{}
-	close(pipeline1.Machines) //非常重要，不用了的channel务必关闭掉，否则就会有deadlock，继续等待channel接收数据
-
-	pipeline2 := worker1.NewPipeline(2, "steamMilk_pipeline")
-	pipeline2.Machines <- &worker1.SteamMilkMachine{}
-	close(pipeline2.Machines) //非常重要，不用了的channel务必关闭掉，否则就会有deadlock，继续等待channel接收数据
-
-	dd.SubmitPipeline(*pipeline1)
-	dd.SubmitPipeline(*pipeline2)
 
 	//pipeline3 := worker1.NewPipeline(3, "3_pipeline")
 	//pipeline3.Machines <- &worker1.SteamMilkMachine{}
@@ -185,26 +173,17 @@ func dispatch_worker1() {
 	//pipeline8 := worker1.NewPipeline(8, "8_pipeline")
 	//pipeline8.Machines <- &worker1.SteamMilkMachine{}
 
-	//dd.SubmitPipeline(*pipeline3)
-	//dd.SubmitPipeline(*pipeline4)
-	//dd.SubmitPipeline(*pipeline5)
-	//dd.SubmitPipeline(*pipeline6)
-	//dd.SubmitPipeline(*pipeline7)
-	//dd.SubmitPipeline(*pipeline8)
+	//dd.submitPipeline(*pipeline3)
+	//dd.submitPipeline(*pipeline4)
+	//dd.submitPipeline(*pipeline5)
+	//dd.submitPipeline(*pipeline6)
+	//dd.submitPipeline(*pipeline7)
+	//dd.submitPipeline(*pipeline8)
 
 	//l := len(dd.Workers)
 	//for i := 0; i < l; i++ {
 	//	<- dd.Workers[i].Quit
 	//}
-
-	select {
-	case <-pipeline1.PipelineDone:
-		log.Println("pipeline1-", pipeline1.Name, " done")
-	}
-	select {
-	case <-pipeline2.PipelineDone:
-		log.Println("pipeline2-", pipeline2.Name, " done")
-	}
 
 	end := time.Now()
 	log.Print(end.Sub(start).Seconds())
