@@ -59,9 +59,9 @@ func (d *disp) process() {
 	for {
 		select {
 		case pipeline := <-d.PipelineChan: // listen to any submitted job on the WorkChan
-			// wait for a worker1 to submit JobChan to Queue
-			// note that this Queue is shared among all workers.
-			// Whenever there is an available JobChan on Queue pull it
+			// wait for a worker1 to submit JobChan to JobQueue
+			// note that this JobQueue is shared among all workers.
+			// Whenever there is an available JobChan on JobQueue pull it
 			pipelineChan := <-d.Queue
 
 			// Once a jobChan is available, send the submitted Job on this JobChan

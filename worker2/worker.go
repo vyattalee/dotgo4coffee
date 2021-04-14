@@ -12,8 +12,12 @@ import (
 
 type JobQueue chan chan JobInterface
 
-//type JobChannel chan Pipeline
+//type JobChannel chan Job interface
 type JobChannel chan JobInterface
+
+type PipelineQueue chan chan Pipeline
+
+type PipelineChannel chan Pipeline
 
 // Worker is a a single processor. Typically its possible to
 // start multiple workers for better throughput
@@ -21,18 +25,22 @@ type Worker struct {
 	ID   int    // id of the worker
 	Name string //name of the worker
 	//PipelineChan JobChannel    //a channel to machine list, a worker1 can deal with several machine in future
-	Queue   JobQueue      // shared between all workers.
-	JobChan JobChannel    // a channel to
-	Quit    chan struct{} // a channel to quit working
+	PipelineQueue PipelineQueue // shared between all workers
+	PipelineChan  PipelineChannel
+	JobQueue      JobQueue      // shared between all workers.
+	JobChan       JobChannel    // a channel to
+	Quit          chan struct{} // a channel to quit working
 }
 
-func New(ID int, Name string, JobChan JobChannel, Queue JobQueue, Quit chan struct{}) *Worker {
+func New(ID int, Name string, PipelineChan PipelineChannel, PipelineQueue PipelineQueue, JobChan JobChannel, JobQueue JobQueue, Quit chan struct{}) *Worker {
 	return &Worker{
-		ID:      ID,
-		Name:    Name,
-		JobChan: JobChan,
-		Queue:   Queue,
-		Quit:    Quit,
+		ID:            ID,
+		Name:          Name,
+		PipelineChan:  PipelineChan,
+		PipelineQueue: PipelineQueue,
+		JobChan:       JobChan,
+		JobQueue:      JobQueue,
+		Quit:          Quit,
 	}
 }
 
@@ -44,7 +52,7 @@ func (wr *Worker) Start() {
 
 			// when available, put the JobChan again on the JobPool
 			// and wait to receive a job
-			wr.Queue <- wr.JobChan
+			wr.JobQueue <- wr.JobChan
 			select {
 			case job := <-wr.JobChan:
 				// when a pipeline is received, process
