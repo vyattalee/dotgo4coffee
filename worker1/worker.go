@@ -67,6 +67,7 @@ func (wr *Worker) Start() {
 				pipeline.PipelineDone <- struct{}{}
 				close(pipeline.PipelineDone)
 				wr.Quit <- struct{}{}
+				wr.Stop()
 
 			case <-wr.Quit:
 				// a signal on this channel means someone triggered

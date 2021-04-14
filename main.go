@@ -192,8 +192,10 @@ func dispatch_worker1() {
 	//dd.SubmitPipeline(*pipeline7)
 	//dd.SubmitPipeline(*pipeline8)
 
-	end := time.Now()
-	log.Print(end.Sub(start).Seconds())
+	//l := len(dd.Workers)
+	//for i := 0; i < l; i++ {
+	//	<- dd.Workers[i].Quit
+	//}
 
 	select {
 	case <-pipeline1.PipelineDone:
@@ -203,6 +205,9 @@ func dispatch_worker1() {
 	case <-pipeline2.PipelineDone:
 		log.Println("pipeline2-", pipeline2.Name, " done")
 	}
+
+	end := time.Now()
+	log.Print(end.Sub(start).Seconds())
 	//wg.Wait()
 	//fmt.Scanln()
 }
