@@ -27,7 +27,7 @@ type disp struct {
 func (d *disp) Start() *disp {
 	l := len(d.Workers)
 	for i := 1; i <= l; i++ {
-		wrk := pipelineWorker.New(i, make(pipelineWorker.JobChannel), d.Queue, make(chan struct{}))
+		wrk := pipelineWorker.New(i, "pipeline-worker", make(pipelineWorker.JobChannel), d.Queue, make(chan struct{}))
 		wrk.Start()
 		d.Workers = append(d.Workers, wrk)
 	}

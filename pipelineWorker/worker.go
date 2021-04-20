@@ -3,19 +3,8 @@ package pipelineWorker
 import (
 	"fmt"
 	"log"
-	"math/rand"
 	"time"
 )
-
-// Job represents a single entity that should be processed.
-// For example a struct that should be saved to database
-type Job struct {
-	ID        int
-	Name      string
-	Dojob     func(id int, job Job)
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
 
 type JobChannel chan Job
 type JobQueue chan chan Job
@@ -24,14 +13,16 @@ type JobQueue chan chan Job
 // start multiple workers for better throughput
 type Worker struct {
 	ID      int           // id of the worker
+	Name    string        //name of the worker
 	JobChan JobChannel    // a channel to receive single unit of work
 	Queue   JobQueue      // shared between all workers.
 	Quit    chan struct{} // a channel to quit working
 }
 
-func New(ID int, JobChan JobChannel, Queue JobQueue, Quit chan struct{}) *Worker {
+func New(ID int, Name string, JobChan JobChannel, Queue JobQueue, Quit chan struct{}) *Worker {
 	return &Worker{
 		ID:      ID,
+		Name:    Name,
 		JobChan: JobChan,
 		Queue:   Queue,
 		Quit:    Quit,
@@ -49,8 +40,9 @@ func (wr *Worker) Start() {
 			case job := <-wr.JobChan:
 				// when a job is received, process
 				//callApi(job.ID, wr.ID, c)
-				job.Dojob(wr.ID, job)
-				//dojob(wr.ID, job)
+				//job.Dojob(wr.ID, job)
+				job.JobID()
+
 			case <-wr.Quit:
 				// a signal on this channel means someone triggered
 				// a shutdown for this worker
@@ -66,12 +58,18 @@ func (wr *Worker) Stop() {
 	close(wr.Quit)
 }
 
-func dojob(id int, job Job) {
+func (wr *Worker) Pipeline(done <-chan struct{}, machine Machine, job Job) <-chan Job {
 	start := time.Now()
-	prefix := fmt.Sprintf("Worker[%d]-Job[%d::%s]", id, job.ID, job.Name)
-	fmt.Println(prefix, "start to do job!")
-	//time.Sleep(time.Millisecond * time.Duration(rand.Intn(100000)))
-	time.Sleep(time.Second * time.Duration(rand.Intn(20)))
+	wr.Name = machine.name()
+	prefix := fmt.Sprintf("Worker[%d::%s]", wr.ID, wr.Name)
+	postfix := fmt.Sprintf("Job[%d::%s]", job.JobID(), job.JobName())
+	fmt.Println(prefix, "start to do", postfix, "!")
+	c := make(chan Job)
+	time.Sleep(time.Millisecond * 1)
+
+	c <- SemiFinishedProduct{(job.JobID()), "grindBeanSemiFinishedProduct", time.Now(), time.Now()}
+
 	end := time.Now()
 	log.Print(end.Sub(start).Seconds())
+	return c
 }
