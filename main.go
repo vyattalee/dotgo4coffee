@@ -4,6 +4,8 @@ import (
 	"coffeeshop/dispatcher"
 	"coffeeshop/dispatcher1"
 	"coffeeshop/dispatcher2"
+	"coffeeshop/pipelineDispatcher"
+	"coffeeshop/pipelineWorker"
 	"coffeeshop/worker"
 	"coffeeshop/worker2"
 	"fmt"
@@ -62,10 +64,10 @@ func main() {
 
 	//dispatch_worker1()
 
-	dispatch_worker2()
+	//dispatch_worker2()
 
 	//test4PolymorphicInheritanceBYInterface()
-
+	pipelineDispatch_worker()
 }
 
 func dispatch_worker() {
@@ -208,27 +210,99 @@ func dispatch_worker2() {
 	pipeline1.Machines <- &worker2.EspressoCoffeeMachine{}
 	close(pipeline1.Machines) //非常重要，不用了的channel务必关闭掉，否则就会有deadlock，继续等待channel接收数据
 
-	pipeline2 := worker2.NewPipeline(2, "steamMilk_pipeline")
-	pipeline2.Machines <- &worker2.SteamMilkMachine{}
-	close(pipeline2.Machines) //非常重要，不用了的channel务必关闭掉，否则就会有deadlock，继续等待channel接收数据
+	//pipeline2 := worker2.NewPipeline(2, "steamMilk_pipeline")
+	//pipeline2.Machines <- &worker2.SteamMilkMachine{}
+	//close(pipeline2.Machines) //非常重要，不用了的channel务必关闭掉，否则就会有deadlock，继续等待channel接收数据
+	//
+	//pipeline3 := worker2.NewPipeline(3, "haha_pipeline")
+	//pipeline3.Machines <- &worker2.HahaMachine{}
+	//close(pipeline3.Machines) //非常重要，不用了的channel务必关闭掉，否则就会有deadlock，继续等待channel接收数据
 
 	dd.SubmitPipeline(*pipeline1)
-	dd.SubmitPipeline(*pipeline2)
+	//dd.SubmitPipeline(*pipeline2)
+	//dd.SubmitPipeline(*pipeline3)
 
 	dd.SubmitJob(worker2.Job{
 		ID:        1000,
-		Name:      fmt.Sprintf("Job-::%s", "normal order"),
+		Name:      fmt.Sprintf("Job-::%s", "Ginger's order"),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	})
 
-	dd.SubmitJob(worker2.SemiFinishedProduct{
-		ProductId:          1001,
-		ProductDescription: fmt.Sprintf("Job-::%s", "semiFinishedProduct"),
+	dd.SubmitJob(worker2.Job{
+		ID:        1001,
+		Name:      fmt.Sprintf("Job-::%s", "Johan's order"),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	})
+
+	dd.SubmitJob(worker2.Job{
+		ID:        1002,
+		Name:      fmt.Sprintf("Job-::%s", "Vyatta's order"),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	})
+
+	dd.SubmitJob(worker2.Job{
+		ID:        1003,
+		Name:      fmt.Sprintf("Job-::%s", "Noha's order"),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	})
+
+	//dd.SubmitJob(worker2.SemiFinishedProduct{
+	//	ProductId:          1003,
+	//	ProductDescription: fmt.Sprintf("Job-::%s", "semiFinishedProduct"),
+	//})
 
 	end := time.Now()
 	log.Print(end.Sub(start).Seconds())
 	//wg.Wait()
 	//fmt.Scanln()
+}
+
+func pipelineDispatch_worker() {
+	start := time.Now()
+	dd := pipelineDispatcher.New(10).Start()
+
+	terms := map[int]string{
+		1:  "grindBean",
+		2:  "espressoCoffee",
+		3:  "steamMilk",
+		4:  "grindBean",
+		5:  "espressoCoffee",
+		6:  "steamMilk",
+		7:  "grindBean",
+		8:  "espressoCoffee",
+		9:  "steamMilk",
+		10: "grindBean",
+		11: "espressoCoffee",
+		12: "steamMilk",
+		13: "grindBean",
+		14: "espressoCoffee",
+		15: "steamMilk",
+		17: "grindBean",
+		18: "espressoCoffee",
+		19: "steamMilk",
+		16: "coffeeLatte"}
+
+	for id, name := range terms {
+		dd.Submit(pipelineWorker.Job{
+			ID:   id,
+			Name: fmt.Sprintf("Job-::%s", name),
+			Dojob: func(id int, job pipelineWorker.Job) {
+				start := time.Now()
+				prefix := fmt.Sprintf("##Worker[%d]-Job[%d::%s]", id, job.ID, job.Name)
+				log.Print(prefix, "start to do job!")
+				time.Sleep(time.Second * time.Duration(rand.Intn(10)))
+				end := time.Now()
+				log.Print(prefix, "finish job total time: ", end.Sub(start).Seconds())
+			},
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		})
+	}
+
+	end := time.Now()
+	log.Print(end.Sub(start).Seconds())
 }
