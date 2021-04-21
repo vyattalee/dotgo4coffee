@@ -33,15 +33,21 @@ func (wr *Worker) Start() {
 	//c := &http.Client{Timeout: time.Millisecond * 15000}
 	go func() {
 		for {
+			done := make(chan struct{})
+			Machines := make(chan Machine, 2)
+			defer close(done)
 			// when available, put the JobChan again on the JobPool
 			// and wait to receive a job
 			wr.Queue <- wr.JobChan
 			select {
 			case job := <-wr.JobChan:
+				for machine := range Machines {
+					wr.Pipeline(done, machine, job)
+				}
 				// when a job is received, process
 				//callApi(job.ID, wr.ID, c)
 				//job.Dojob(wr.ID, job)
-				job.JobID()
+				//job.JobID()
 
 			case <-wr.Quit:
 				// a signal on this channel means someone triggered
