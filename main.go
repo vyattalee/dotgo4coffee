@@ -344,7 +344,7 @@ func (d *CoffeeStep) Exec(request *pipeline.Request) *pipeline.Result {
 		return &pipeline.Result{Error: fmt.Errorf("File download failed %s", d.Name)}
 	}
 
-	d.Status(fmt.Sprintf("Successfully downloaded file %s", d.Name))
+	d.Status(fmt.Sprintf("Successfully %s", d.Name))
 
 	return &pipeline.Result{
 		Error:  nil,
@@ -368,9 +368,10 @@ func coffeeshop_pipeline_model() {
 	//steps
 	grindBeanStep := newStep("GrindBeanStep", 1, false)
 	espressoCoffeeStep := newStep("EspressoCoffeeStep", 2, false)
+	steamMilkStep := newStep("SteamMilkStep", 3, false)
 
 	//stage with sequential steps
-	stage.AddStep(grindBeanStep, espressoCoffeeStep)
+	stage.AddStep(grindBeanStep, espressoCoffeeStep, steamMilkStep)
 
 	// add all stages
 	workflow.AddStage(stage)
