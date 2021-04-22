@@ -16,6 +16,8 @@ github.com/mattn/go-colorable v0.1.8 h1:c1ghPdyEDarC70ftn0y+A/Ee++9zz8ljHG1b13eJ
 github.com/mattn/go-colorable v0.1.8/go.mod h1:u6P/XSegPjTcexA+o6vUJrdnUu04hMope9wVRipJSqc=
 github.com/mattn/go-isatty v0.0.12 h1:wuysRhFDzyxgEmMf5xjvJ2M9dZoWAXNNr5LSBS7uHXY=
 github.com/mattn/go-isatty v0.0.12/go.mod h1:cbi8OIDigv2wuxKPP5vlRcQ1OAZbq2CE4Kysco4FUpU=
+github.com/myntra/pipeline v0.0.0-20180618182531-2babf4864ce8 h1:b2uniQevKsIAdAgonACj+tW6eTotNBI30zvPQSVOWwQ=
+github.com/myntra/pipeline v0.0.0-20180618182531-2babf4864ce8/go.mod h1:9Viqaf1D6mzC977KNzp496RvO4I819iz5Q6gjbXY7Ow=
 github.com/uber-archive/go-torch v0.0.0-20181107071353-86f327cc820e h1:SxRzcXW7HUtZO3i/DSEqmaN9V0HrN0yOSAwz+NbyQcU=
 github.com/uber-archive/go-torch v0.0.0-20181107071353-86f327cc820e/go.mod h1:gogIXoCpZPp51ukmfgC8ieK2yQ9yxshhNLc4GgAYgPs=
 github.com/uber/go-torch v0.0.0-20181107071353-86f327cc820e h1:jV0Y58RWaOMT3i5foW2YoEKlaN6biewBtngFwAfEwQ0=

@@ -298,16 +298,16 @@ func pipelineDispatch_worker() {
 
 type CoffeeStep struct {
 	pipeline.StepContext
-	Name   string
-	bytes  int64
-	fail   bool
-	ctx    context.Context
-	cancel context.CancelFunc
+	Name        string
+	ProcessTime int64
+	fail        bool
+	ctx         context.Context
+	cancel      context.CancelFunc
 }
 
-func newStep(Name string, bytes int64, fail bool) *CoffeeStep {
+func newStep(Name string, ProcessTime int64, fail bool) *CoffeeStep {
 	ctx, cancel := context.WithCancel(context.Background())
-	d := &CoffeeStep{Name: Name, bytes: bytes, fail: fail}
+	d := &CoffeeStep{Name: Name, ProcessTime: ProcessTime, fail: fail}
 	d.ctx = ctx
 	d.cancel = cancel
 	return d
@@ -319,26 +319,7 @@ func (d *CoffeeStep) Exec(request *pipeline.Request) *pipeline.Result {
 
 	d.Status(fmt.Sprintf("Started %s", d.Name))
 
-	client := &http.Client{}
-
-	req, err := http.NewRequest("GET", fmt.Sprintf("http://httpbin.org/bytes/%d", d.bytes), nil)
-	if err != nil {
-		return &pipeline.Result{Error: err}
-	}
-
-	req = req.WithContext(d.ctx)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return &pipeline.Result{Error: err}
-	}
-
-	defer resp.Body.Close()
-
-	n, err := io.Copy(ioutil.Discard, resp.Body)
-	if err != nil {
-		return &pipeline.Result{Error: err}
-	}
+	time.Sleep(time.Millisecond * time.Duration(d.ProcessTime))
 
 	if d.fail {
 		return &pipeline.Result{Error: fmt.Errorf("File download failed %s", d.Name)}
@@ -348,33 +329,44 @@ func (d *CoffeeStep) Exec(request *pipeline.Request) *pipeline.Result {
 
 	return &pipeline.Result{
 		Error:  nil,
-		Data:   struct{ bytesDownloaded int64 }{bytesDownloaded: n},
-		KeyVal: map[string]interface{}{"bytesDownloaded": n},
+		Data:   struct{ ProcessTime int64 }{ProcessTime: d.ProcessTime},
+		KeyVal: map[string]interface{}{"ProcessTime": d.ProcessTime},
 	}
 }
 
 func (d *CoffeeStep) Cancel() error {
-	d.Status(fmt.Sprintf("Cancel downloading file %s", d.Name))
+	d.Status(fmt.Sprintf("Cancel %s", d.Name))
 	d.cancel()
 	return nil
+}
+
+type GrindBeanStep struct {
+	pipeline.StepContext
+	Name string
+	fail bool
+
+	ctx    context.Context
+	cancel context.CancelFunc
 }
 
 func coffeeshop_pipeline_model() {
 	workflow := pipeline.NewProgress("coffee shop", 100, time.Second*5)
 
 	//stage
-	stage := pipeline.NewStage("stage1ForGrindBean&EspressoCoffee", false, false)
+	stage := pipeline.NewStage("CoffeeShopStage1", true, false)
 
 	//steps
-	grindBeanStep := newStep("GrindBeanStep", 1, false)
-	espressoCoffeeStep := newStep("EspressoCoffeeStep", 2, false)
-	steamMilkStep := newStep("SteamMilkStep", 3, false)
+	grindBeanStep := newStep("GrindBeanStep", 100, false)
+	espressoCoffeeStep := newStep("EspressoCoffeeStep", 200, false)
+	steamMilkStep := newStep("SteamMilkStep", 300, false)
 
 	//stage with sequential steps
 	stage.AddStep(grindBeanStep, espressoCoffeeStep, steamMilkStep)
 
 	// add all stages
 	workflow.AddStage(stage)
+
+	start := time.Now()
 
 	// start a routine to read out and progress
 	go readPipeline(workflow)
@@ -387,6 +379,8 @@ func coffeeshop_pipeline_model() {
 
 	// one would persist the time taken duration to use as progress scale for the next workflow build
 	fmt.Println("timeTaken:", workflow.GetDuration())
+	end := time.Now()
+	log.Print(end.Sub(start).Seconds(), " seconds")
 
 }
 
@@ -456,7 +450,7 @@ func (d *downloadStep) Exec(request *pipeline.Request) *pipeline.Result {
 
 	client := &http.Client{}
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("http://httpbin.org/bytes/%d", d.bytes), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("http://httpbin.org/ProcessTime/%d", d.bytes), nil)
 	if err != nil {
 		return &pipeline.Result{Error: err}
 	}
@@ -484,7 +478,7 @@ func (d *downloadStep) Exec(request *pipeline.Request) *pipeline.Result {
 	return &pipeline.Result{
 		Error:  nil,
 		Data:   struct{ bytesDownloaded int64 }{bytesDownloaded: n},
-		KeyVal: map[string]interface{}{"bytesDownloaded": n},
+		KeyVal: map[string]interface{}{"ProcessTime": n},
 	}
 }
 
