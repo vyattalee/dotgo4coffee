@@ -353,7 +353,7 @@ func coffeeshop_pipeline_model() {
 	workflow := pipeline.NewProgress("coffee shop", 100, time.Second*5)
 
 	//stage
-	stage := pipeline.NewStage("CoffeeShopStage1", true, false)
+	stage := pipeline.NewStage("CoffeeShopStage1", false, false)
 
 	//steps
 	grindBeanStep := newStep("GrindBeanStep", 100, false)
