@@ -9,7 +9,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-
 	//"coffeeshop/pipelineDispatcher"
 	//"coffeeshop/pipelineWorker"
 	"coffeeshop/worker"
@@ -322,17 +321,24 @@ func (d *CoffeeStep) Exec(request *pipeline.Request) *pipeline.Result {
 	time.Sleep(time.Millisecond * time.Duration(d.ProcessTime))
 
 	if d.fail {
-		return &pipeline.Result{Error: fmt.Errorf("File download failed %s", d.Name)}
+		return &pipeline.Result{Error: fmt.Errorf("step failed %s", d.Name)}
 	}
 
 	d.Status(fmt.Sprintf("Successfully %s", d.Name))
 
 	return &pipeline.Result{
 		Error:  nil,
-		Data:   struct{ ProcessTime int64 }{ProcessTime: d.ProcessTime},
-		KeyVal: map[string]interface{}{"ProcessTime": d.ProcessTime},
+		Data:   request.Data, /*struct{ SemiFinishedProductID int64 }{SemiFinishedProductID: }*/
+		KeyVal: map[string]interface{}{"SemiFinishedProduct": request.Data},
 	}
 }
+
+/*
+ &{Data:{Order:1000} KeyVal:map[Customer Order:1000]}
+request.KeyVal    &{Data:{Order:1000} KeyVal:map[SemiFinishedProductID:map[SemiFinishedProductID:map[Customer Order:1000]]]}
+request.Data	  &{Data:{Order:1000} KeyVal:map[Customer Order:1000]}
+
+*/
 
 func (d *CoffeeStep) Cancel() error {
 	d.Status(fmt.Sprintf("Cancel %s", d.Name))
@@ -350,7 +356,7 @@ type GrindBeanStep struct {
 }
 
 func coffeeshop_pipeline_model() {
-	workflow := pipeline.NewProgress("coffee shop", 100, time.Second*5)
+	workflow := pipeline.NewProgress("coffee shop", 100, time.Millisecond*500)
 
 	//stage
 	stage := pipeline.NewStage("CoffeeShopStage1", false, false)

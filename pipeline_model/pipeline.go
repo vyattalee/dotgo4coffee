@@ -133,7 +133,7 @@ func (p *Pipeline) Run() *Result {
 	defer p.status("end")
 
 	p.status("begin")
-	request := &Request{}
+	request := &Request{Data: struct{ Order int64 }{Order: 1000}, KeyVal: map[string]interface{}{"Customer Order": 1000}}
 	result := &Result{}
 	for i, stage := range p.Stages {
 		stage.index = i
