@@ -43,7 +43,7 @@ func (st *Stage) run(request *Request) *Result {
 	defer st.status("end")
 
 	if st.Concurrent {
-		st.status("is concurrent")
+		st.status("is concurrent step in current stage")
 		g, ctx := withContext(context.Background())
 		for _, step := range st.Steps {
 			step.Status("begin")
@@ -91,7 +91,7 @@ func (st *Stage) run(request *Request) *Result {
 		}
 
 	} else {
-		st.status("is not concurrent")
+		st.status("is sequential step in current stage")
 		res := &Result{}
 		for _, step := range st.Steps {
 			step.Status("begin")
