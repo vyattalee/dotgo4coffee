@@ -372,6 +372,9 @@ func coffeeshop_pipeline_model() {
 	// add all stages
 	workflow.AddStage(stage)
 
+	//introduce the Order channel into pipeline to dispatch the order
+	//workflow.Submit()
+
 	start := time.Now()
 
 	// start a routine to read out and progress
