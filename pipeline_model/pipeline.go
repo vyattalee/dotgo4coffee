@@ -17,6 +17,9 @@ const DefaultDrainTimeout = time.Second * 5
 // DefaultBuffer channel buffer size of the output buffer
 const DefaultBuffer = 1000
 
+type JobChannel chan Job
+type JobQueue chan chan Job
+
 // Pipeline is a sequence of stages
 type Pipeline struct {
 	Name             string   `json:"name"`
@@ -29,6 +32,8 @@ type Pipeline struct {
 	tick             time.Duration
 	cancelDrain      context.CancelFunc
 	cancelProgress   context.CancelFunc
+	WorkChan         JobChannel // client submits job to this channel
+	Queue            JobQueue   // this is the shared JobPool between the workers
 }
 
 // New returns a new pipeline
@@ -63,7 +68,7 @@ func newPipeline(name string, outBufferLen int) *Pipeline {
 		buffersMap = &buffers{bufferMap: make(map[string]*buffer)}
 	}
 
-	p := &Pipeline{Name: spaceMap(name)}
+	p := &Pipeline{Name: spaceMap(name), WorkChan: make(JobChannel), Queue: make(JobQueue)}
 	p.outbufferlen = outBufferLen
 
 	if p.DrainTimeout == 0 {
@@ -133,7 +138,9 @@ func (p *Pipeline) Run() *Result {
 	defer p.status("end")
 
 	p.status("begin")
-	request := &Request{Data: struct{ Order int64 }{Order: 1000}, KeyVal: map[string]interface{}{"Customer Order": 1000}}
+	//request := &Request{Data: struct{ Order int64 }{Order: 1000}, KeyVal: map[string]interface{}{"Customer Order": 1000}}
+	var request *Request
+	p.dispatch(request)
 	result := &Result{}
 	for i, stage := range p.Stages {
 		stage.index = i
@@ -264,4 +271,50 @@ func spaceMap(str string) string {
 		}
 		return r
 	}, str)
+}
+
+func (p *Pipeline) Submit(job Job) {
+	p.WorkChan <- job
+}
+
+func (p *Pipeline) process() {
+	for {
+		select {
+		case job := <-p.WorkChan: // listen to any submitted job on the WorkChan
+			// wait for a worker to submit JobChan to JobQueue
+			// note that this JobQueue is shared among all workers.
+			// Whenever there is an available JobChan on JobQueue pull it
+			jobChan := <-p.Queue
+
+			// Once a jobChan is available, send the submitted Job on this JobChan
+			jobChan <- job
+		}
+	}
+}
+
+func (p *Pipeline) dispatch(request *Request) {
+
+	go func() {
+		for {
+			// when available, put the JobChan again on the JobPool
+			// and wait to receive a job
+			p.Queue <- p.WorkChan
+			select {
+			case job := <-p.WorkChan:
+				request = &Request{Data: struct{ Order int64 }{Order: job.JobID()}, KeyVal: map[string]interface{}{"Customer Order": job.JobID()}}
+				//return request
+				// when a job is received, process
+				//callApi(job.ID, wr.ID, c)
+				//job.Dojob(wr.ID, job)
+				//dojob(wr.ID, job)
+				//case <-p.Quit:
+				//	// a signal on this channel means someone triggered
+				//	// a shutdown for this worker
+				//	close(p.WorkChan)
+				//	return
+			}
+		}
+	}()
+
+	go p.process()
 }

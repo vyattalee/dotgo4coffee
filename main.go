@@ -373,7 +373,7 @@ func coffeeshop_pipeline_model() {
 	workflow.AddStage(stage)
 
 	//introduce the Order channel into pipeline to dispatch the order
-	//workflow.Submit()
+	//workflow.Submit(pipeline.CustomerOrder{ID:1000,Name:"Lattee",CreatedAt:time.Now(),UpdatedAt:time.Now()})
 
 	start := time.Now()
 
