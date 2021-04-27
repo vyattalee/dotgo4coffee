@@ -373,18 +373,29 @@ func coffeeshop_pipeline_model() {
 	workflow.AddStage(stage)
 
 	//introduce the Order channel into pipeline to dispatch the order
-	//workflow.Submit(pipeline.CustomerOrder{ID:1000,Name:"Lattee",CreatedAt:time.Now(),UpdatedAt:time.Now()})
+	workflow.Submit(pipeline.CustomerOrder{ID: 1000, Name: "Lattee", CreatedAt: time.Now(), UpdatedAt: time.Now()})
+	workflow.Submit(pipeline.CustomerOrder{ID: 1001, Name: "Lattee1", CreatedAt: time.Now(), UpdatedAt: time.Now()})
+	workflow.Submit(pipeline.CustomerOrder{ID: 1002, Name: "Lattee2", CreatedAt: time.Now(), UpdatedAt: time.Now()})
 
 	start := time.Now()
 
 	// start a routine to read out and progress
 	go readPipeline(workflow)
 
+	//var request *pipeline.Request
+	//for job := range workflow.WorkChan{
+	//	request = &pipeline.Request{Data: struct{ Order int64 }{Order: job.JobID()}, KeyVal: map[string]interface{}{job.JobName(): job.JobID()}}
+
 	// execute pipeline
 	result := workflow.Run()
+	//result := workflow.RunWithReq(request)
 	if result.Error != nil {
 		fmt.Println(result.Error)
 	}
+	//}
+
+	//close(workflow.WorkChan)
+	//close(workflow.Queue)
 
 	// one would persist the time taken duration to use as progress scale for the next workflow build
 	fmt.Println("timeTaken:", workflow.GetDuration())

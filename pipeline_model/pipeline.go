@@ -68,7 +68,8 @@ func newPipeline(name string, outBufferLen int) *Pipeline {
 		buffersMap = &buffers{bufferMap: make(map[string]*buffer)}
 	}
 
-	p := &Pipeline{Name: spaceMap(name), WorkChan: make(JobChannel), Queue: make(JobQueue)}
+	//p := &Pipeline{Name: spaceMap(name)/*, WorkChan: make(JobChannel), Queue: make(JobQueue)*/}
+	p := &Pipeline{Name: spaceMap(name), WorkChan: make(JobChannel, 100), Queue: make(JobQueue)}
 	p.outbufferlen = outBufferLen
 
 	if p.DrainTimeout == 0 {
@@ -106,7 +107,7 @@ func (p *Pipeline) AddStage(stage ...*Stage) {
 }
 
 // Run the pipeline. The stages are executed in sequence while steps may be concurrent or sequential.
-func (p *Pipeline) Run() *Result {
+func (p *Pipeline) RunWithReq(request *Request) *Result {
 
 	if len(p.Stages) == 0 {
 		return &Result{Error: fmt.Errorf("No stages to be executed")}
@@ -139,8 +140,59 @@ func (p *Pipeline) Run() *Result {
 
 	p.status("begin")
 	//request := &Request{Data: struct{ Order int64 }{Order: 1000}, KeyVal: map[string]interface{}{"Customer Order": 1000}}
-	var request *Request
-	p.dispatch(request)
+	//var request *Request
+	//p.dispatch(request)
+	result := &Result{}
+	for i, stage := range p.Stages {
+		stage.index = i
+		result = stage.run(request)
+		if result.Error != nil {
+			p.status("stage: " + stage.Name + " failed !!! ")
+			return result
+		}
+		request.Data = result.Data
+		request.KeyVal = result.KeyVal
+	}
+
+	return result
+}
+
+// Run the pipeline. The stages are executed in sequence while steps may be concurrent or sequential.
+func (p *Pipeline) Run() *Result {
+
+	if len(p.Stages) == 0 {
+		return &Result{Error: fmt.Errorf("No stages to be executed")}
+	}
+
+	var ticker *time.Ticker
+	if p.expectedDuration != 0 && p.tick != 0 {
+		// start progress update ticker
+		ticker = time.NewTicker(p.tick)
+		ctx, cancelProgress := context.WithCancel(context.Background())
+		p.cancelProgress = cancelProgress
+		go p.updateProgress(ticker, ctx)
+	}
+
+	buf, ok := buffersMap.get(p.Name)
+	if !ok {
+		return &Result{Error: fmt.Errorf("error creating output %s", p.Name)}
+	}
+
+	ctx, cancelDrain := context.WithCancel(context.Background())
+	p.cancelDrain = cancelDrain
+	go buf.drainBuffer(ctx)
+
+	defer buffersMap.remove(p.Name)
+	defer p.waitForDrain()
+	if p.expectedDuration != 0 && p.tick != 0 {
+		defer ticker.Stop()
+	}
+	defer p.status("end")
+
+	p.status("begin")
+	request := &Request{Data: struct{ Order int64 }{Order: 1000}, KeyVal: map[string]interface{}{"Customer Order": 1000}}
+	//var request *Request
+	//p.dispatch(request)
 	result := &Result{}
 	for i, stage := range p.Stages {
 		stage.index = i
@@ -302,7 +354,7 @@ func (p *Pipeline) dispatch(request *Request) {
 			select {
 			case job := <-p.WorkChan:
 				request = &Request{Data: struct{ Order int64 }{Order: job.JobID()}, KeyVal: map[string]interface{}{"Customer Order": job.JobID()}}
-				//return request
+				//return
 				// when a job is received, process
 				//callApi(job.ID, wr.ID, c)
 				//job.Dojob(wr.ID, job)
