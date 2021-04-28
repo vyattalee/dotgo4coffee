@@ -372,10 +372,10 @@ func coffeeshop_pipeline_model() {
 	// add all stages
 	workflow.AddStage(stage)
 
-	//introduce the Order channel into pipeline to dispatch the order
-	workflow.Submit(pipeline.CustomerOrder{ID: 1000, Name: "Lattee", CreatedAt: time.Now(), UpdatedAt: time.Now()})
-	workflow.Submit(pipeline.CustomerOrder{ID: 1001, Name: "Lattee1", CreatedAt: time.Now(), UpdatedAt: time.Now()})
-	workflow.Submit(pipeline.CustomerOrder{ID: 1002, Name: "Lattee2", CreatedAt: time.Now(), UpdatedAt: time.Now()})
+	//channel solution: introduce the Order channel into pipeline to dispatch the order
+	//workflow.Submit(pipeline.CustomerOrder{ID: 1000, Name: "Lattee", CreatedAt: time.Now(), UpdatedAt: time.Now()})
+	//workflow.Submit(pipeline.CustomerOrder{ID: 1001, Name: "Lattee1", CreatedAt: time.Now(), UpdatedAt: time.Now()})
+	//workflow.Submit(pipeline.CustomerOrder{ID: 1002, Name: "Lattee2", CreatedAt: time.Now(), UpdatedAt: time.Now()})
 
 	start := time.Now()
 
@@ -384,15 +384,24 @@ func coffeeshop_pipeline_model() {
 
 	//var request *pipeline.Request
 	//for job := range workflow.WorkChan{
-	//	request = &pipeline.Request{Data: struct{ Order int64 }{Order: job.JobID()}, KeyVal: map[string]interface{}{job.JobName(): job.JobID()}}
+	//request batch in for loop solution
+	for id := int64(0); id < 10; id++ {
+		//	request = &pipeline.Request{Data: struct{ Order int64 }{Order: job.JobID()}, KeyVal: map[string]interface{}{job.JobName(): job.JobID()}}
 
-	// execute pipeline
-	result := workflow.Run()
-	//result := workflow.RunWithReq(request)
-	if result.Error != nil {
-		fmt.Println(result.Error)
+		// execute pipeline
+		result := workflow.RunWithID(id)
+
+		//result := workflow.Run()
+		//result := workflow.RunWithReq(request)
+		if result.Error != nil {
+			fmt.Println(result.Error)
+		}
+		//}
 	}
-	//}
+
+	//if call workflow.RunWithID, it should call ClearBufferMap;
+	// but other functions(workflow.Run only one request) don't need to do that
+	workflow.ClearBufferMap()
 
 	//close(workflow.WorkChan)
 	//close(workflow.Queue)

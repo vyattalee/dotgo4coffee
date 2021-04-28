@@ -106,6 +106,61 @@ func (p *Pipeline) AddStage(stage ...*Stage) {
 	p.Stages = append(p.Stages, stage...)
 }
 
+func (p *Pipeline) ClearBufferMap() {
+	buffersMap.remove(p.Name) //after RunWithID in loop, it should ClearBufferMap
+}
+
+// Run the pipeline. The stages are executed in sequence while steps may be concurrent or sequential.
+func (p *Pipeline) RunWithID(ID int64) *Result {
+
+	if len(p.Stages) == 0 {
+		return &Result{Error: fmt.Errorf("No stages to be executed")}
+	}
+
+	var ticker *time.Ticker
+	if p.expectedDuration != 0 && p.tick != 0 {
+		// start progress update ticker
+		ticker = time.NewTicker(p.tick)
+		ctx, cancelProgress := context.WithCancel(context.Background())
+		p.cancelProgress = cancelProgress
+		go p.updateProgress(ticker, ctx)
+	}
+
+	buf, ok := buffersMap.get(p.Name)
+	if !ok {
+		return &Result{Error: fmt.Errorf("error creating output %s", p.Name)}
+	}
+
+	ctx, cancelDrain := context.WithCancel(context.Background())
+	p.cancelDrain = cancelDrain
+	go buf.drainBuffer(ctx)
+
+	//defer buffersMap.remove(p.Name)   //batch request should remove this line.
+	defer p.waitForDrain()
+	if p.expectedDuration != 0 && p.tick != 0 {
+		defer ticker.Stop()
+	}
+	defer p.status("end")
+
+	p.status("begin")
+	request := &Request{Data: struct{ Order int64 }{Order: 1000 + ID}, KeyVal: map[string]interface{}{"Customer Order": 1000 + ID}}
+	//var request *Request
+	//p.dispatch(request)
+	result := &Result{}
+	for i, stage := range p.Stages {
+		stage.index = i
+		result = stage.run(request)
+		if result.Error != nil {
+			p.status("stage: " + stage.Name + " failed !!! ")
+			return result
+		}
+		request.Data = result.Data
+		request.KeyVal = result.KeyVal
+	}
+
+	return result
+}
+
 // Run the pipeline. The stages are executed in sequence while steps may be concurrent or sequential.
 func (p *Pipeline) RunWithReq(request *Request) *Result {
 
@@ -190,7 +245,8 @@ func (p *Pipeline) Run() *Result {
 	defer p.status("end")
 
 	p.status("begin")
-	request := &Request{Data: struct{ Order int64 }{Order: 1000}, KeyVal: map[string]interface{}{"Customer Order": 1000}}
+
+	request := &Request{Data: struct{ Order int64 }{Order: int64(1000)}, KeyVal: map[string]interface{}{"Customer Order": 1000}}
 	//var request *Request
 	//p.dispatch(request)
 	result := &Result{}
