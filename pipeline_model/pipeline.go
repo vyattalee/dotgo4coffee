@@ -107,6 +107,9 @@ func (p *Pipeline) AddStage(stage ...*Stage) {
 	p.Stages = append(p.Stages, stage...)
 }
 
+//if call workflow.RunWithID, it should call ClearBufferMap;
+// but other functions(workflow.Run only one request) don't need to do that
+// it is no use any more, because the pipeline are recreated from scratch NewProgress/NewStage/NewStep/AddStep
 func (p *Pipeline) ClearBufferMap() {
 	buffersMap.remove(p.Name) //after RunWithID in loop, it should ClearBufferMap
 }
@@ -136,7 +139,7 @@ func (p *Pipeline) RunWithID(ID int64) *Result {
 	p.cancelDrain = cancelDrain
 	go buf.drainBuffer(ctx)
 
-	defer buffersMap.remove(p.Name) //batch request should remove this line.
+	defer buffersMap.remove(p.Name) //batch request should remove this line. b
 	defer p.waitForDrain()
 	if p.expectedDuration != 0 && p.tick != 0 {
 		defer ticker.Stop()
