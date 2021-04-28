@@ -74,6 +74,10 @@ type TestStep struct {
 	key string
 }
 
+func (t TestStep) Name() string {
+	return t.key
+}
+
 func (t TestStep) Exec(request *Request) *Result {
 	t.Status("start step")
 	t.Status("executing test ")
@@ -92,6 +96,9 @@ type TestStep2 struct {
 	key string
 }
 
+func (t TestStep2) Name() string {
+	return t.key
+}
 func (t TestStep2) Exec(request *Request) *Result {
 	t.Status("start step")
 	t.Status("executing test 2")
@@ -110,6 +117,9 @@ type TestStepErr struct {
 	key string
 }
 
+func (t TestStepErr) Name() string {
+	return t.key
+}
 func (t TestStepErr) Exec(request *Request) *Result {
 
 	t.Status("start step")
@@ -129,6 +139,9 @@ type TestStepErr2 struct {
 	key string
 }
 
+func (t TestStepErr2) Name() string {
+	return t.key
+}
 func (t TestStepErr2) Exec(request *Request) *Result {
 	t.Status("start step")
 	t.Status("executing test err 2")
