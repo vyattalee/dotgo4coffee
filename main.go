@@ -277,10 +277,10 @@ func pipelineDispatch_worker() {
 	//for id, name := range terms {
 	//	//dd.Submit(pipelineWorker.Job{
 	//	//	ID:   id,
-	//	//	Name: fmt.Sprintf("Job-::%s", name),
+	//	//	NAME: fmt.Sprintf("Job-::%s", name),
 	//	//	//Dojob: func(id int, job pipelineWorker.Job) {
 	//	//	//	start := time.Now()
-	//	//	//	prefix := fmt.Sprintf("##Worker[%d]-Job[%d::%s]", id, job.ID, job.Name)
+	//	//	//	prefix := fmt.Sprintf("##Worker[%d]-Job[%d::%s]", id, job.ID, job.NAME)
 	//	//	//	log.Print(prefix, "start to do job!")
 	//	//	//	time.Sleep(time.Second * time.Duration(rand.Intn(10)))
 	//	//	//	end := time.Now()
@@ -297,7 +297,7 @@ func pipelineDispatch_worker() {
 
 type CoffeeStep struct {
 	pipeline.StepContext
-	Name        string
+	NAME        string
 	ProcessTime int64
 	fail        bool
 	ctx         context.Context
@@ -306,17 +306,21 @@ type CoffeeStep struct {
 
 func newStep(Name string, ProcessTime int64, fail bool) *CoffeeStep {
 	ctx, cancel := context.WithCancel(context.Background())
-	d := &CoffeeStep{Name: Name, ProcessTime: ProcessTime, fail: fail}
+	d := &CoffeeStep{NAME: Name, ProcessTime: ProcessTime, fail: fail}
 	d.ctx = ctx
 	d.cancel = cancel
 	return d
+}
+
+func (d *CoffeeStep) Name() string {
+	return d.NAME
 }
 
 func (d *CoffeeStep) Exec(request *pipeline.Request) *pipeline.Result {
 
 	d.Status(fmt.Sprintf("%+v", request))
 
-	d.Status(fmt.Sprintf("Started %s", d.Name))
+	d.Status(fmt.Sprintf("Started %s", d.NAME))
 
 	time.Sleep(time.Millisecond * time.Duration(d.ProcessTime))
 
@@ -324,7 +328,7 @@ func (d *CoffeeStep) Exec(request *pipeline.Request) *pipeline.Result {
 		return &pipeline.Result{Error: fmt.Errorf("step failed %s", d.Name)}
 	}
 
-	d.Status(fmt.Sprintf("Successfully %s", d.Name))
+	d.Status(fmt.Sprintf("Successfully %s", d.NAME))
 
 	return &pipeline.Result{
 		Error:  nil,
@@ -373,9 +377,9 @@ func coffeeshop_pipeline_model() {
 	workflow.AddStage(stage)
 
 	//channel solution: introduce the Order channel into pipeline to dispatch the order
-	//workflow.Submit(pipeline.CustomerOrder{ID: 1000, Name: "Lattee", CreatedAt: time.Now(), UpdatedAt: time.Now()})
-	//workflow.Submit(pipeline.CustomerOrder{ID: 1001, Name: "Lattee1", CreatedAt: time.Now(), UpdatedAt: time.Now()})
-	//workflow.Submit(pipeline.CustomerOrder{ID: 1002, Name: "Lattee2", CreatedAt: time.Now(), UpdatedAt: time.Now()})
+	//workflow.Submit(pipeline.CustomerOrder{ID: 1000, NAME: "Lattee", CreatedAt: time.Now(), UpdatedAt: time.Now()})
+	//workflow.Submit(pipeline.CustomerOrder{ID: 1001, NAME: "Lattee1", CreatedAt: time.Now(), UpdatedAt: time.Now()})
+	//workflow.Submit(pipeline.CustomerOrder{ID: 1002, NAME: "Lattee2", CreatedAt: time.Now(), UpdatedAt: time.Now()})
 
 	start := time.Now()
 
@@ -470,7 +474,9 @@ func newDownloadStep(fileName string, bytes int64, fail bool) *downloadStep {
 	d.cancel = cancel
 	return d
 }
-
+func (d *downloadStep) Name() string {
+	return d.fileName
+}
 func (d *downloadStep) Exec(request *pipeline.Request) *pipeline.Result {
 
 	d.Status(fmt.Sprintf("%+v", request))
@@ -567,6 +573,9 @@ type work struct {
 	id int
 }
 
+func (w *work) Name() string {
+	return w.Name()
+}
 func (w *work) Exec(request *pipeline.Request) *pipeline.Result {
 
 	w.Status(fmt.Sprintf("%+v", request))

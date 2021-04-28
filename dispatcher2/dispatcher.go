@@ -57,11 +57,11 @@ func pipelines_implementation_backup(d *disp) {
 	//
 	//select {
 	//case <-pipeline1.PipelineDone:
-	//	log.Println("pipeline1-", pipeline1.Name, " done")
+	//	log.Println("pipeline1-", pipeline1.NAME, " done")
 	//}
 	//select {
 	//case <-pipeline2.PipelineDone:
-	//	log.Println("pipeline2-", pipeline2.Name, " done")
+	//	log.Println("pipeline2-", pipeline2.NAME, " done")
 	//}
 }
 

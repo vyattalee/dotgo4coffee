@@ -46,10 +46,10 @@ func (st *Stage) run(request *Request) *Result {
 		st.status("is concurrent step in current stage")
 		g, ctx := withContext(context.Background())
 		for _, step := range st.Steps {
-			step.Status("begin")
+			step.Status(step.getCtx().name + "begin")
 			g.run(func() *Result {
 
-				defer step.Status("end")
+				defer step.Status(step.Name() + "end")
 				//disables strict mode. g.run will wait for all steps to finish
 				if st.DisableStrictMode {
 					return step.Exec(request)
@@ -94,22 +94,22 @@ func (st *Stage) run(request *Request) *Result {
 		st.status("is sequential step in current stage")
 		res := &Result{}
 		for _, step := range st.Steps {
-			step.Status("begin")
+			step.Status(step.Name() + " begin")
 			res = step.Exec(request)
 			if res != nil && res.Error != nil {
-				step.Status(">>>failed !!!")
+				step.Status(step.Name() + " >>>failed !!!")
 				return res
 			}
 
 			if res == nil {
 				res = &Result{}
-				step.Status("end")
+				step.Status(step.Name() + " end")
 				continue
 			}
 
 			request.Data = res.Data
 			request.KeyVal = res.KeyVal
-			step.Status("end")
+			step.Status(step.Name() + " end")
 		}
 		return res
 	}

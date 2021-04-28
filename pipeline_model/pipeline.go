@@ -68,7 +68,7 @@ func newPipeline(name string, outBufferLen int) *Pipeline {
 		buffersMap = &buffers{bufferMap: make(map[string]*buffer)}
 	}
 
-	//p := &Pipeline{Name: spaceMap(name)/*, WorkChan: make(JobChannel), Queue: make(JobQueue)*/}
+	//p := &Pipeline{NAME: spaceMap(name)/*, WorkChan: make(JobChannel), Queue: make(JobQueue)*/}
 	p := &Pipeline{Name: spaceMap(name), WorkChan: make(JobChannel, 100), Queue: make(JobQueue)}
 	p.outbufferlen = outBufferLen
 
@@ -135,7 +135,7 @@ func (p *Pipeline) RunWithID(ID int64) *Result {
 	p.cancelDrain = cancelDrain
 	go buf.drainBuffer(ctx)
 
-	//defer buffersMap.remove(p.Name)   //batch request should remove this line.
+	//defer buffersMap.remove(p.NAME)   //batch request should remove this line.
 	defer p.waitForDrain()
 	if p.expectedDuration != 0 && p.tick != 0 {
 		defer ticker.Stop()

@@ -60,11 +60,11 @@ func (wr *Worker) Start() {
 				wr.JobQueue <- wr.JobChan
 				select {
 				case job := <-wr.JobChan:
-					//log.Println("Worker[", wr.ID, "::", wr.Name, "] do job[", job.JobID(), "::", job.JobName(), "]")
+					//log.Println("Worker[", wr.ID, "::", wr.NAME, "] do job[", job.JobID(), "::", job.JobName(), "]")
 					for machine := range pipeline.Machines {
 						job = machine.dojob(*wr, job)
 						log.Println("semiFinishedProduct[", job.JobID(), "::", job.JobName(), "]")
-						//semiFinishedProduct := machine.dojob(*wr, Job{int64(pipeline.ID<<6 + wr.ID), pipeline.Name + machine.name(), time.Now(), time.Now()})
+						//semiFinishedProduct := machine.dojob(*wr, Job{int64(pipeline.ID<<6 + wr.ID), pipeline.NAME + machine.name(), time.Now(), time.Now()})
 						//log.Println("semiFinishedProduct[", semiFinishedProduct.ProductId, "::", semiFinishedProduct.ProductDescription, "]")
 
 					}
@@ -100,5 +100,5 @@ func (wr *Worker) Stop() {
 //}
 
 //func callPipeline(pipeline dispatcher2.Pipeline) {
-//	log.Println("pipeline:", pipeline.Name, "@", pipeline.ID, "  createAt:", pipeline.CreatedAt, "  updateAt:", pipeline.UpdatedAt)
+//	log.Println("pipeline:", pipeline.NAME, "@", pipeline.ID, "  createAt:", pipeline.CreatedAt, "  updateAt:", pipeline.UpdatedAt)
 //}

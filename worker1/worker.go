@@ -55,7 +55,7 @@ func (wr *Worker) Start() {
 					//for {
 					//	select {
 					//	case machine := <-pipeline.Machines:
-					//log.Println("pipeline-", pipeline.Name, " Machine-", machine.name(), " do job!")
+					//log.Println("pipeline-", pipeline.NAME, " Machine-", machine.name(), " do job!")
 					//for job := range wr.JobChan{
 					//	semiFinishedProduct := machine.dojob(*wr, job)
 					//	log.Println("semiFinishedProduct[", semiFinishedProduct.productId, "::", semiFinishedProduct.productDescription, "]")

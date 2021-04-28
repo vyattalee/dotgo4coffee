@@ -24,6 +24,7 @@ type Request struct {
 // Step is the unit of work which can be concurrently or sequentially staged with other steps
 type Step interface {
 	out
+	Name() string
 	// Exec is invoked by the pipeline when it is run
 	Exec(*Request) *Result
 	// Cancel is invoked by the pipeline when one of the concurrent steps set Result{Error:err}
