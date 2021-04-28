@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -135,17 +136,19 @@ func (p *Pipeline) RunWithID(ID int64) *Result {
 	p.cancelDrain = cancelDrain
 	go buf.drainBuffer(ctx)
 
-	//defer buffersMap.remove(p.NAME)   //batch request should remove this line.
+	defer buffersMap.remove(p.Name) //batch request should remove this line.
 	defer p.waitForDrain()
 	if p.expectedDuration != 0 && p.tick != 0 {
 		defer ticker.Stop()
 	}
-	defer p.status("end")
 
-	p.status("begin")
-	request := &Request{Data: struct{ Order int64 }{Order: 1000 + ID}, KeyVal: map[string]interface{}{"Customer Order": 1000 + ID}}
+	p.status(strconv.FormatInt(ID+1, 10) + " begin")
+	defer p.status(strconv.FormatInt(ID+1, 10) + " end")
+
 	//var request *Request
 	//p.dispatch(request)
+	request := &Request{Data: struct{ Order int64 }{Order: 1000 + ID}, KeyVal: map[string]interface{}{"Customer Order": 1000 + ID}}
+
 	result := &Result{}
 	for i, stage := range p.Stages {
 		stage.index = i

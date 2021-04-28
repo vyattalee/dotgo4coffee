@@ -33,7 +33,9 @@ func main() {
 	//
 	//simple_pipeline_model()
 
-	coffeeshop_pipeline_model()
+	coffeeshop_pipeline_model(false)
+
+	//coffeeshop_pipeline_model(true)
 }
 func test4PolymorphicInheritanceBYInterface() {
 	var m Mammal
@@ -359,37 +361,40 @@ type GrindBeanStep struct {
 	cancel context.CancelFunc
 }
 
-func coffeeshop_pipeline_model() {
-	workflow := pipeline.NewProgress("coffee shop", 100, time.Millisecond*500)
-
-	//stage
-	stage := pipeline.NewStage("CoffeeShopStage1", false, false)
-
-	//steps
-	grindBeanStep := newStep("GrindBeanStep", 100, false)
-	espressoCoffeeStep := newStep("EspressoCoffeeStep", 200, false)
-	steamMilkStep := newStep("SteamMilkStep", 300, false)
-
-	//stage with sequential steps
-	stage.AddStep(grindBeanStep, espressoCoffeeStep, steamMilkStep)
-
-	// add all stages
-	workflow.AddStage(stage)
-
-	//channel solution: introduce the Order channel into pipeline to dispatch the order
-	//workflow.Submit(pipeline.CustomerOrder{ID: 1000, NAME: "Lattee", CreatedAt: time.Now(), UpdatedAt: time.Now()})
-	//workflow.Submit(pipeline.CustomerOrder{ID: 1001, NAME: "Lattee1", CreatedAt: time.Now(), UpdatedAt: time.Now()})
-	//workflow.Submit(pipeline.CustomerOrder{ID: 1002, NAME: "Lattee2", CreatedAt: time.Now(), UpdatedAt: time.Now()})
+func coffeeshop_pipeline_model(isConcurrent bool) {
 
 	start := time.Now()
 
-	// start a routine to read out and progress
-	go readPipeline(workflow)
-
-	//var request *pipeline.Request
-	//for job := range workflow.WorkChan{
-	//request batch in for loop solution
 	for id := int64(0); id < 10; id++ {
+
+		workflow := pipeline.NewProgress("coffee shop", 100, time.Millisecond*500)
+
+		//stage
+		stage := pipeline.NewStage("CoffeeShopStage1", isConcurrent, false)
+
+		//steps
+		grindBeanStep := newStep("GrindBeanStep", 100, false)
+		espressoCoffeeStep := newStep("EspressoCoffeeStep", 200, false)
+		steamMilkStep := newStep("SteamMilkStep", 300, false)
+
+		//stage with sequential steps
+		stage.AddStep(grindBeanStep, espressoCoffeeStep, steamMilkStep)
+
+		// add all stages
+		workflow.AddStage(stage)
+
+		//channel solution: introduce the Order channel into pipeline to dispatch the order
+		//workflow.Submit(pipeline.CustomerOrder{ID: 1000, NAME: "Lattee", CreatedAt: time.Now(), UpdatedAt: time.Now()})
+		//workflow.Submit(pipeline.CustomerOrder{ID: 1001, NAME: "Lattee1", CreatedAt: time.Now(), UpdatedAt: time.Now()})
+		//workflow.Submit(pipeline.CustomerOrder{ID: 1002, NAME: "Lattee2", CreatedAt: time.Now(), UpdatedAt: time.Now()})
+
+		// start a routine to read out and progress
+		go readPipeline(workflow)
+
+		//var request *pipeline.Request
+		//for job := range workflow.WorkChan{
+		//request batch in for loop solution
+
 		//	request = &pipeline.Request{Data: struct{ Order int64 }{Order: job.JobID()}, KeyVal: map[string]interface{}{job.JobName(): job.JobID()}}
 
 		// execute pipeline
@@ -400,18 +405,20 @@ func coffeeshop_pipeline_model() {
 		if result.Error != nil {
 			fmt.Println(result.Error)
 		}
+
 		//}
+		fmt.Println("timeTaken:", workflow.GetDuration())
 	}
 
 	//if call workflow.RunWithID, it should call ClearBufferMap;
 	// but other functions(workflow.Run only one request) don't need to do that
-	workflow.ClearBufferMap()
+	//workflow.ClearBufferMap()
 
 	//close(workflow.WorkChan)
 	//close(workflow.Queue)
 
 	// one would persist the time taken duration to use as progress scale for the next workflow build
-	fmt.Println("timeTaken:", workflow.GetDuration())
+
 	end := time.Now()
 	log.Print(end.Sub(start).Seconds(), " seconds")
 

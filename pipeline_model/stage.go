@@ -39,6 +39,7 @@ func (st *Stage) run(request *Request) *Result {
 	if len(st.Steps) == 0 {
 		return &Result{Error: fmt.Errorf("No steps to be executed")}
 	}
+
 	st.status("begin")
 	defer st.status("end")
 
@@ -46,7 +47,7 @@ func (st *Stage) run(request *Request) *Result {
 		st.status("is concurrent step in current stage")
 		g, ctx := withContext(context.Background())
 		for _, step := range st.Steps {
-			step.Status(step.getCtx().name + "begin")
+			step.Status(step.Name() + "begin")
 			g.run(func() *Result {
 
 				defer step.Status(step.Name() + "end")
