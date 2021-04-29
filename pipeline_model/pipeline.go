@@ -139,13 +139,14 @@ func (p *Pipeline) RunWithID(ID int64) *Result {
 	p.cancelDrain = cancelDrain
 	go buf.drainBuffer(ctx)
 
-	defer buffersMap.remove(p.Name) //batch request should remove this line. b
+	//defer buffersMap.remove(p.Name)
 	defer p.waitForDrain()
 	if p.expectedDuration != 0 && p.tick != 0 {
 		defer ticker.Stop()
 	}
 
 	p.status(strconv.FormatInt(ID+1, 10) + " begin")
+
 	defer p.status(strconv.FormatInt(ID+1, 10) + " end")
 
 	//var request *Request

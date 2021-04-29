@@ -367,7 +367,7 @@ func coffeeshop_pipeline_model(isConcurrent bool) {
 
 	for id := int64(0); id < 10; id++ {
 
-		workflow := pipeline.NewProgress("coffee shop", 100, time.Millisecond*500)
+		workflow := pipeline.NewProgress("coffee shop", 1000, time.Millisecond*500)
 
 		//stage
 		stage := pipeline.NewStage("CoffeeShopStage1", isConcurrent, false)
@@ -399,9 +399,9 @@ func coffeeshop_pipeline_model(isConcurrent bool) {
 
 		// execute pipeline
 		result := workflow.RunWithID(id)
-
 		//result := workflow.Run()
 		//result := workflow.RunWithReq(request)
+
 		if result.Error != nil {
 			fmt.Println(result.Error)
 		}
@@ -420,12 +420,13 @@ func coffeeshop_pipeline_model(isConcurrent bool) {
 	// one would persist the time taken duration to use as progress scale for the next workflow build
 
 	end := time.Now()
+
 	log.Print(end.Sub(start).Seconds(), " seconds")
 
 }
 
 func pipeline_stage_step_model() {
-	workflow := pipeline.NewProgress("getfiles", 1000, time.Second*7)
+	workflow := pipeline.NewProgress("getfiles", 10000, time.Second*7)
 	//stages
 	stage := pipeline.NewStage("stage", false, false)
 	// in this stage, steps will be executed concurrently
@@ -530,7 +531,10 @@ func (d *downloadStep) Cancel() error {
 	return nil
 }
 
+//var m sync.Mutex
 func readPipeline(pipe *pipeline.Pipeline) {
+	//m.Lock()
+	//defer m.Unlock()
 	out, err := pipe.Out()
 	if err != nil {
 		return
